@@ -1,0 +1,297 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { MockAuthService } from '@/services/mockAuth';
+import { MockDataService } from '@/services/mockData';
+import { Navbar } from '@/components/Layout/Navbar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { 
+  Activity, 
+  Moon, 
+  Utensils, 
+  Target, 
+  Plus, 
+  TrendingUp,
+  Calendar,
+  Clock,
+  Zap
+} from 'lucide-react';
+import { StatistiquesJournalieres, ObjectifUtilisateur } from '@/types/health';
+
+export default function Dashboard() {
+  const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
+  const [objectifs, setObjectifs] = useState<ObjectifUtilisateur[]>([]);
+  const authService = MockAuthService.getInstance();
+  const dataService = MockDataService.getInstance();
+  const user = authService.getCurrentUser();
+
+  useEffect(() => {
+    if (user) {
+      const statsData = dataService.getStatistiquesJournalieres(user.id);
+      const objectifsData = dataService.getObjectifs(user.id);
+      setStats(statsData);
+      setObjectifs(objectifsData);
+    }
+  }, [user]);
+
+  if (!user) return null;
+
+  const aujourdhui = stats[stats.length - 1];
+  const statsRecentes = stats.slice(-7);
+
+  // Calculs pour les statistiques d'aujourd'hui
+  const sommeilAujourdhui = aujourdhui?.sommeil || 0;
+  const caloriesAujourdhui = aujourdhui?.calories || 0;
+  const activiteAujourdhui = aujourdhui?.activiteMinutes || 0;
+
+  // Moyennes de la semaine
+  const sommeilMoyen = statsRecentes.reduce((acc, s) => acc + (s.sommeil || 0), 0) / statsRecentes.length;
+  const caloriesMoyennes = statsRecentes.reduce((acc, s) => acc + (s.calories || 0), 0) / statsRecentes.length;
+  const activiteMoyenne = statsRecentes.reduce((acc, s) => acc + (s.activiteMinutes || 0), 0) / statsRecentes.length;
+
+  const objectifSommeil = objectifs.find(o => o.type === 'sommeil');
+  const objectifActivite = objectifs.find(o => o.type === 'activite');
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* En-tête de bienvenue */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Bonjour, {user.prenom} ! 👋
+          </h1>
+          <p className="text-muted-foreground">
+            Voici un aperçu de votre santé aujourd'hui
+          </p>
+        </div>
+
+        {/* Statistiques rapides */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Sommeil */}
+          <Card className="stat-card gradient-wellness border-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Sommeil</CardTitle>
+              <Moon className="h-4 w-4 text-secondary-accent" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">
+                {sommeilAujourdhui.toFixed(1)}h
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Moyenne: {sommeilMoyen.toFixed(1)}h/nuit
+              </p>
+              {objectifSommeil && (
+                <Progress 
+                  value={(sommeilAujourdhui / objectifSommeil.valeurCible) * 100} 
+                  className="mt-2" 
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Calories */}
+          <Card className="stat-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Calories</CardTitle>
+              <Utensils className="h-4 w-4 text-warning" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">
+                {caloriesAujourdhui}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Moyenne: {Math.round(caloriesMoyennes)} cal/jour
+              </p>
+              <Progress 
+                value={(caloriesAujourdhui / 2000) * 100} 
+                className="mt-2" 
+              />
+            </CardContent>
+          </Card>
+
+          {/* Activité */}
+          <Card className="stat-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Activité</CardTitle>
+              <Activity className="h-4 w-4 text-success" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">
+                {activiteAujourdhui}min
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Moyenne: {Math.round(activiteMoyenne)} min/jour
+              </p>
+              {objectifActivite && (
+                <Progress 
+                  value={(activiteAujourdhui / (objectifActivite.valeurCible / 7)) * 100} 
+                  className="mt-2" 
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Score du jour */}
+          <Card className="stat-card gradient-primary border-0 text-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">Score Santé</CardTitle>
+              <Target className="h-4 w-4 text-white" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">
+                {Math.round(
+                  ((sommeilAujourdhui / 8) + 
+                   (caloriesAujourdhui / 2000) + 
+                   (activiteAujourdhui / 60)) / 3 * 100
+                )}%
+              </div>
+              <p className="text-xs text-white/80">
+                Excellent travail !
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Actions rapides */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Ajouter des données */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Plus className="h-5 w-5 text-primary" />
+                <span>Actions rapides</span>
+              </CardTitle>
+              <CardDescription>
+                Enregistrez vos données quotidiennes
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Link to="/ajouter?type=sommeil">
+                <Button variant="outline" className="w-full justify-start">
+                  <Moon className="mr-2 h-4 w-4" />
+                  Ajouter sommeil
+                </Button>
+              </Link>
+              <Link to="/ajouter?type=repas">
+                <Button variant="outline" className="w-full justify-start">
+                  <Utensils className="mr-2 h-4 w-4" />
+                  Ajouter repas
+                </Button>
+              </Link>
+              <Link to="/ajouter?type=activite">
+                <Button variant="outline" className="w-full justify-start">
+                  <Activity className="mr-2 h-4 w-4" />
+                  Ajouter activité
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Objectifs */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Target className="h-5 w-5 text-success" />
+                <span>Objectifs</span>
+              </CardTitle>
+              <CardDescription>
+                Suivez vos progrès
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {objectifs.filter(o => o.actif).map((objectif) => (
+                <div key={objectif.id} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="capitalize">{objectif.type}</span>
+                    <span className="font-medium">
+                      {objectif.valeurActuelle} / {objectif.valeurCible}
+                      {objectif.type === 'sommeil' ? 'h' : 
+                       objectif.type === 'activite' ? 'min/sem' : 
+                       objectif.type === 'poids' ? 'kg' : ''}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={(objectif.valeurActuelle / objectif.valeurCible) * 100}
+                    className="h-2"
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Statistiques récentes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <TrendingUp className="h-5 w-5 text-info" />
+                <span>Tendances</span>
+              </CardTitle>
+              <CardDescription>
+                Évolution de la semaine
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Moon className="h-4 w-4 text-secondary-accent" />
+                  <span className="text-sm">Sommeil moyen</span>
+                </div>
+                <span className="font-medium">{sommeilMoyen.toFixed(1)}h</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Activity className="h-4 w-4 text-success" />
+                  <span className="text-sm">Activité moyenne</span>
+                </div>
+                <span className="font-medium">{Math.round(activiteMoyenne)}min</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Utensils className="h-4 w-4 text-warning" />
+                  <span className="text-sm">Calories moyennes</span>
+                </div>
+                <span className="font-medium">{Math.round(caloriesMoyennes)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Navigation vers d'autres sections */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link to="/statistiques">
+            <Card className="stat-card cursor-pointer hover:shadow-medium transition-smooth">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="h-5 w-5 text-info" />
+                  <span>Voir les statistiques détaillées</span>
+                </CardTitle>
+                <CardDescription>
+                  Analysez vos tendances sur le long terme
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link to="/notifications">
+            <Card className="stat-card cursor-pointer hover:shadow-medium transition-smooth">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Zap className="h-5 w-5 text-warning" />
+                  <span>Notifications et rappels</span>
+                </CardTitle>
+                <CardDescription>
+                  Restez motivé avec nos conseils personnalisés
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
+      </main>
+    </div>
+  );
+}
