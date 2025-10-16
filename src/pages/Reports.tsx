@@ -326,30 +326,42 @@ export default function Reports() {
 
             {/* Analyses détaillées */}
             <Tabs defaultValue="evolution" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="evolution">Évolution</TabsTrigger>
-                <TabsTrigger value="repartition">Répartition</TabsTrigger>
-                <TabsTrigger value="comparaison">Comparaison</TabsTrigger>
-                <TabsTrigger value="recommandations">Recommandations</TabsTrigger>
+              <TabsList className="flex flex-col sm:flex-row gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-1">
+                  <TabsTrigger value="evolution" className="px-4 py-3 text-sm sm:text-base flex-1">
+                    Évolution
+                  </TabsTrigger>
+                  <TabsTrigger value="repartition" className="px-4 py-3 text-sm sm:text-base flex-1">
+                    Répartition
+                  </TabsTrigger>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-1">
+                  <TabsTrigger value="comparaison" className="px-4 py-3 text-sm sm:text-base flex-1">
+                    Comparaison
+                  </TabsTrigger>
+                  <TabsTrigger value="recommandations" className="px-4 py-3 text-sm sm:text-base flex-1">
+                    Recommandations
+                  </TabsTrigger>
+                </div>
               </TabsList>
 
               {/* Graphiques d'évolution */}
               <TabsContent value="evolution" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Moon className="h-5 w-5 text-secondary-accent" />
-                        <span>Évolution du sommeil</span>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <Card className="overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-1 sm:space-y-0">
+                        <Moon className="h-5 w-5 text-secondary-accent mb-1 sm:mb-0" />
+                        <span className="text-base sm:text-lg">Évolution du sommeil</span>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="h-64">
+                    <CardContent className="pt-0">
+                      <div className="h-48 sm:h-56 md:h-64">
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis domain={[4, 10]} />
+                            <XAxis dataKey="date" fontSize={12} />
+                            <YAxis domain={[4, 10]} fontSize={12} />
                             <Tooltip />
                             <Area 
                               type="monotone" 
@@ -364,20 +376,20 @@ export default function Reports() {
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Activity className="h-5 w-5 text-success" />
-                        <span>Activité physique</span>
+                  <Card className="overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-1 sm:space-y-0">
+                        <Activity className="h-5 w-5 text-success mb-1 sm:mb-0" />
+                        <span className="text-base sm:text-lg">Activité physique</span>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="h-64">
+                    <CardContent className="pt-0">
+                      <div className="h-48 sm:h-56 md:h-64">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis />
+                            <XAxis dataKey="date" fontSize={12} />
+                            <YAxis fontSize={12} />
                             <Tooltip />
                             <Bar 
                               dataKey="activite" 
@@ -391,20 +403,20 @@ export default function Reports() {
                   </Card>
                 </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Utensils className="h-5 w-5 text-warning" />
-                      <span>Consommation calorique</span>
+                <Card className="overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-1 sm:space-y-0">
+                      <Utensils className="h-5 w-5 text-warning mb-1 sm:mb-0" />
+                      <span className="text-base sm:text-lg">Consommation calorique</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="h-64">
+                  <CardContent className="pt-0">
+                    <div className="h-48 sm:h-56 md:h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
-                          <YAxis domain={[1000, 3000]} />
+                          <XAxis dataKey="date" fontSize={12} />
+                          <YAxis domain={[1000, 3000]} fontSize={12} />
                           <Tooltip />
                           <Line 
                             type="monotone" 
@@ -422,20 +434,20 @@ export default function Reports() {
 
               {/* Répartition */}
               <TabsContent value="repartition" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Répartition des jours actifs</CardTitle>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <Card className="overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base sm:text-lg">Répartition des jours actifs</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="h-64">
+                    <CardContent className="pt-0">
+                      <div className="h-48 sm:h-56 md:h-64">
                         <ResponsiveContainer width="100%" height="100%">
                           <RechartsPieChart>
                             <Pie
                               data={pieData}
                               cx="50%"
                               cy="50%"
-                              outerRadius={80}
+                              outerRadius={60}
                               dataKey="value"
                               label={({ name, value }) => `${name}: ${value}`}
                             >
@@ -450,33 +462,33 @@ export default function Reports() {
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Métriques clés</CardTitle>
+                  <Card className="overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base sm:text-lg">Métriques clés</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span>Meilleure nuit de sommeil</span>
-                          <Badge className="bg-success text-success-foreground">
+                    <CardContent className="pt-0">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex justify-between items-center text-sm sm:text-base">
+                          <span className="truncate mr-2">Meilleure nuit de sommeil</span>
+                          <Badge className="bg-success text-success-foreground flex-shrink-0">
                             {report.meilleurSommeil.toFixed(1)}h
                           </Badge>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span>Plus longue séance d'activité</span>
-                          <Badge className="bg-primary text-primary-foreground">
+                        <div className="flex justify-between items-center text-sm sm:text-base">
+                          <span className="truncate mr-2">Plus longue séance d'activité</span>
+                          <Badge className="bg-primary text-primary-foreground flex-shrink-0">
                             {report.maxActivite}min
                           </Badge>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span>Jour le plus calorique</span>
-                          <Badge className="bg-warning text-warning-foreground">
+                        <div className="flex justify-between items-center text-sm sm:text-base">
+                          <span className="truncate mr-2">Jour le plus calorique</span>
+                          <Badge className="bg-warning text-warning-foreground flex-shrink-0">
                             {report.maxCalories} cal
                           </Badge>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span>Jour le moins calorique</span>
-                          <Badge variant="outline">
+                        <div className="flex justify-between items-center text-sm sm:text-base">
+                          <span className="truncate mr-2">Jour le moins calorique</span>
+                          <Badge variant="outline" className="flex-shrink-0">
                             {report.minCalories} cal
                           </Badge>
                         </div>
@@ -488,16 +500,16 @@ export default function Reports() {
 
               {/* Comparaison */}
               <TabsContent value="comparaison" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Comparaison avec les recommandations</CardTitle>
+                <Card className="overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base sm:text-lg">Comparaison avec les recommandations</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
+                  <CardContent className="pt-0">
+                    <div className="space-y-4 sm:space-y-6">
                       <div>
-                        <div className="flex justify-between mb-2">
-                          <span>Sommeil (recommandé: 7-9h)</span>
-                          <span>{report.sommeilMoyen.toFixed(1)}h</span>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 space-y-1 sm:space-y-0">
+                          <span className="text-sm sm:text-base">Sommeil (recommandé: 7-9h)</span>
+                          <span className="text-sm sm:text-base font-medium">{report.sommeilMoyen.toFixed(1)}h</span>
                         </div>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div 
@@ -512,9 +524,11 @@ export default function Reports() {
                       </div>
 
                       <div>
-                        <div className="flex justify-between mb-2">
-                          <span>Activité (recommandé: 150min/semaine)</span>
-                          <span>{Math.round(report.activiteTotale * 7 / filteredStats.length)}min/sem</span>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 space-y-1 sm:space-y-0">
+                          <span className="text-sm sm:text-base">Activité (recommandé: 150min/semaine)</span>
+                          <span className="text-sm sm:text-base font-medium">
+                            {Math.round(report.activiteTotale * 7 / filteredStats.length)}min/sem
+                          </span>
                         </div>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div 
@@ -531,9 +545,11 @@ export default function Reports() {
                       </div>
 
                       <div>
-                        <div className="flex justify-between mb-2">
-                          <span>Régularité (objectif: quotidien)</span>
-                          <span>{Math.round(report.pourcentageJoursActifs)}%</span>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 space-y-1 sm:space-y-0">
+                          <span className="text-sm sm:text-base">Régularité (objectif: quotidien)</span>
+                          <span className="text-sm sm:text-base font-medium">
+                            {Math.round(report.pourcentageJoursActifs)}%
+                          </span>
                         </div>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div 
@@ -555,12 +571,12 @@ export default function Reports() {
 
               {/* Recommandations */}
               <TabsContent value="recommandations" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="border-success">
-                    <CardHeader>
-                      <CardTitle className="text-success">Points forts</CardTitle>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <Card className="border-success overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-success text-base sm:text-lg">Points forts</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-0">
                       <ul className="space-y-2 text-sm">
                         {report.sommeilMoyen >= 7 && (
                           <li>✅ Excellente qualité de sommeil moyenne</li>
@@ -576,11 +592,11 @@ export default function Reports() {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-warning">
-                    <CardHeader>
-                      <CardTitle className="text-warning">Axes d'amélioration</CardTitle>
+                  <Card className="border-warning overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-warning text-base sm:text-lg">Axes d'amélioration</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-0">
                       <ul className="space-y-2 text-sm">
                         {report.sommeilMoyen < 7 && (
                           <li>⚠️ Augmenter la durée de sommeil (objectif: 7-9h)</li>
@@ -597,11 +613,11 @@ export default function Reports() {
                   </Card>
                 </div>
 
-                <Card className="bg-accent border-accent-bright">
-                  <CardHeader>
-                    <CardTitle>Recommandations personnalisées</CardTitle>
+                <Card className="bg-accent border-accent-bright overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base sm:text-lg">Recommandations personnalisées</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <div className="space-y-3 text-sm">
                       <p><strong>Pour améliorer votre sommeil :</strong></p>
                       <ul className="list-disc list-inside space-y-1 ml-4">
