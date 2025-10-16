@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { MockAuthService } from '@/services/mockAuth';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { EditEntryModal } from '@/components/EditEntryModal';
 import { 
   Calendar,
   Clock,
@@ -27,11 +28,15 @@ import { EntreeSommeil, EntreeRepas, EntreeActivite } from '@/types/health';
 
 export default function History() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [sommeilEntries, setSommeilEntries] = useState<EntreeSommeil[]>([]);
   const [repasEntries, setRepasEntries] = useState<EntreeRepas[]>([]);
   const [activiteEntries, setActiviteEntries] = useState<EntreeActivite[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('all');
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<EntreeSommeil | EntreeRepas | EntreeActivite | null>(null);
+  const [selectedEntryType, setSelectedEntryType] = useState<'sommeil' | 'repas' | 'activite'>('sommeil');
   
   const authService = MockAuthService.getInstance();
   const dataService = MockDataService.getInstance();
@@ -81,7 +86,54 @@ export default function History() {
     return <Badge className={styles[intensite as keyof typeof styles]}>{intensite}</Badge>;
   };
 
-  const filterByPeriod = (entries: any[]) => {
+  // Fonction de recherche
+  const searchEntries = (entries: (EntreeSommeil | EntreeRepas | EntreeActivite)[], type: string) => {
+    if (!searchTerm.trim()) return entries;
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    return entries.filter(entry => {
+      // Recherche par date
+      if (formatDate(entry.date).toLowerCase().includes(searchLower)) {
+        return true;
+      }
+      
+      // Recherche par notes
+      if (entry.notes && entry.notes.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+      
+      // Recherche spécifique par type
+      if (type === 'sommeil') {
+        const sleepEntry = entry as EntreeSommeil;
+        return sleepEntry.heureCoucher.includes(searchTerm) || 
+               sleepEntry.heureReveil.includes(searchTerm) ||
+               sleepEntry.dureeSommeil.toString().includes(searchTerm);
+      }
+      
+      if (type === 'repas') {
+        const mealEntry = entry as EntreeRepas;
+        return mealEntry.typeRepas.toLowerCase().includes(searchLower) ||
+               mealEntry.aliments.some(aliment => aliment.toLowerCase().includes(searchLower)) ||
+               (mealEntry.calories && mealEntry.calories.toString().includes(searchTerm)) ||
+               (mealEntry.notes && mealEntry.notes.toLowerCase().includes(searchLower));
+      }
+      
+      if (type === 'activite') {
+        const activityEntry = entry as EntreeActivite;
+        return activityEntry.typeActivite.toLowerCase().includes(searchLower) ||
+               activityEntry.duree.toString().includes(searchTerm) ||
+               activityEntry.intensite.toLowerCase().includes(searchLower) ||
+               (activityEntry.caloriesBrulees && activityEntry.caloriesBrulees.toString().includes(searchTerm)) ||
+               (activityEntry.notes && activityEntry.notes.toLowerCase().includes(searchLower));
+      }
+      
+      return false;
+    });
+  };
+
+  // Fonction de filtrage par période
+  const filterByPeriod = (entries: (EntreeSommeil | EntreeRepas | EntreeActivite)[]) => {
     if (filterPeriod === 'all') return entries;
     
     const now = new Date();
@@ -101,16 +153,42 @@ export default function History() {
     return filtered;
   };
 
-  const filteredSommeil = filterByPeriod(sommeilEntries);
-  const filteredRepas = filterByPeriod(repasEntries);
-  const filteredActivite = filterByPeriod(activiteEntries);
+  // Application des filtres et recherche
+  const filteredSommeil = useMemo(() => {
+    const periodFiltered = filterByPeriod(sommeilEntries);
+    return searchEntries(periodFiltered, 'sommeil');
+  }, [sommeilEntries, filterPeriod, searchTerm]);
 
-  const handleEdit = (id: string, type: string) => {
-    toast({
-      title: "Modification",
-      description: `Ouverture de l'éditeur pour ${type}`,
-    });
-    // Ici on pourrait naviguer vers une page d'édition
+  const filteredRepas = useMemo(() => {
+    const periodFiltered = filterByPeriod(repasEntries);
+    return searchEntries(periodFiltered, 'repas');
+  }, [repasEntries, filterPeriod, searchTerm]);
+
+  const filteredActivite = useMemo(() => {
+    const periodFiltered = filterByPeriod(activiteEntries);
+    return searchEntries(periodFiltered, 'activite');
+  }, [activiteEntries, filterPeriod, searchTerm]);
+
+  const handleEdit = (entry: EntreeSommeil | EntreeRepas | EntreeActivite, type: 'sommeil' | 'repas' | 'activite') => {
+    setSelectedEntry(entry);
+    setSelectedEntryType(type);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEntry = (updatedEntry: EntreeSommeil | EntreeRepas | EntreeActivite) => {
+    if (selectedEntryType === 'sommeil') {
+      setSommeilEntries(prev => prev.map(entry => 
+        entry.id === updatedEntry.id ? updatedEntry as EntreeSommeil : entry
+      ));
+    } else if (selectedEntryType === 'repas') {
+      setRepasEntries(prev => prev.map(entry => 
+        entry.id === updatedEntry.id ? updatedEntry as EntreeRepas : entry
+      ));
+    } else if (selectedEntryType === 'activite') {
+      setActiviteEntries(prev => prev.map(entry => 
+        entry.id === updatedEntry.id ? updatedEntry as EntreeActivite : entry
+      ));
+    }
   };
 
   const handleDelete = async (id: string, type: string) => {
@@ -137,6 +215,10 @@ export default function History() {
         variant: "destructive",
       });
     }
+  };
+
+  const navigateToSection = (section: string) => {
+    navigate(`/historique?type=${section}`);
   };
 
   return (
@@ -179,12 +261,15 @@ export default function History() {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Rechercher..."
+                    placeholder="Rechercher par date, notes, aliments, activité..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Recherche en temps réel dans les dates, notes, aliments et activités
+                </p>
               </div>
               
               <Select value={filterPeriod} onValueChange={setFilterPeriod}>
@@ -202,258 +287,286 @@ export default function History() {
           </CardContent>
         </Card>
 
-        {/* Contenu principal */}
-        <Tabs value={activeTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="sommeil">
-              <Moon className="h-4 w-4 mr-2" />
-              Sommeil ({filteredSommeil.length})
-            </TabsTrigger>
-            <TabsTrigger value="repas">
-              <Utensils className="h-4 w-4 mr-2" />
-              Repas ({filteredRepas.length})
-            </TabsTrigger>
-            <TabsTrigger value="activite">
-              <Activity className="h-4 w-4 mr-2" />
-              Activités ({filteredActivite.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* Navigation rapide entre sections */}
+        <div className="flex flex-nowrap gap-2 mb-6 overflow-x-auto pb-2">
+          <Button 
+            variant={activeTab === 'sommeil' ? "default" : "outline"} 
+            className="flex items-center space-x-2 whitespace-nowrap flex-shrink-0"
+            onClick={() => navigateToSection('sommeil')}
+          >
+            <Moon className="h-4 w-4" />
+            <span>Sommeil ({filteredSommeil.length})</span>
+          </Button>
+          <Button 
+            variant={activeTab === 'repas' ? "default" : "outline"} 
+            className="flex items-center space-x-2 whitespace-nowrap flex-shrink-0"
+            onClick={() => navigateToSection('repas')}
+          >
+            <Utensils className="h-4 w-4" />
+            <span>Repas ({filteredRepas.length})</span>
+          </Button>
+          <Button 
+            variant={activeTab === 'activite' ? "default" : "outline"} 
+            className="flex items-center space-x-2 whitespace-nowrap flex-shrink-0"
+            onClick={() => navigateToSection('activite')}
+          >
+            <Activity className="h-4 w-4" />
+            <span>Activités ({filteredActivite.length})</span>
+          </Button>
+        </div>
 
+        {/* Contenu principal */}
+        <div className="space-y-6">
           {/* Historique Sommeil */}
-          <TabsContent value="sommeil" className="space-y-4">
-            {filteredSommeil.map((entry) => (
-              <Card key={entry.id} className="hover:shadow-medium transition-smooth">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Calendar className="h-5 w-5 text-secondary-accent" />
-                        <span>{formatDate(entry.date)}</span>
-                      </CardTitle>
-                      <CardDescription>
-                        Sommeil de {entry.dureeSommeil.toFixed(1)} heures
-                      </CardDescription>
-                    </div>
-                     <div className="flex space-x-2">
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={() => handleEdit(entry.id, 'sommeil')}
-                       >
-                         <Edit className="h-4 w-4" />
-                       </Button>
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={() => handleDelete(entry.id, 'sommeil')}
-                       >
-                         <Trash2 className="h-4 w-4" />
-                       </Button>
-                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Coucher</p>
-                      <p className="text-lg font-semibold flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        {formatTime(entry.heureCoucher)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Réveil</p>
-                      <p className="text-lg font-semibold flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        {formatTime(entry.heureReveil)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Durée</p>
-                      <p className="text-lg font-semibold text-primary">
-                        {entry.dureeSommeil.toFixed(1)}h
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Qualité</p>
-                      <div className="flex space-x-1">
-                        {getQualityStars(entry.qualiteSommeil)}
+          {activeTab === 'sommeil' && (
+            <div className="space-y-4">
+              {filteredSommeil.map((entry) => {
+                const sleepEntry = entry as EntreeSommeil;
+                return (
+                  <Card key={sleepEntry.id} className="hover:shadow-medium transition-smooth">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="flex items-center space-x-2">
+                            <Calendar className="h-5 w-5 text-secondary-accent" />
+                            <span>{formatDate(sleepEntry.date)}</span>
+                          </CardTitle>
+                          <CardDescription>
+                            Sommeil de {sleepEntry.dureeSommeil.toFixed(1)} heures
+                          </CardDescription>
+                        </div>
+                         <div className="flex space-x-2">
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => handleEdit(sleepEntry, 'sommeil')}
+                           >
+                             <Edit className="h-4 w-4" />
+                           </Button>
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => handleDelete(sleepEntry.id, 'sommeil')}
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </Button>
+                         </div>
                       </div>
-                    </div>
-                  </div>
-                  {entry.notes && (
-                    <div className="mt-4">
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
-                      <p className="text-sm text-foreground bg-muted p-2 rounded">
-                        {entry.notes}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Coucher</p>
+                          <p className="text-lg font-semibold flex items-center">
+                            <Clock className="h-4 w-4 mr-1" />
+                            {formatTime(sleepEntry.heureCoucher)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Réveil</p>
+                          <p className="text-lg font-semibold flex items-center">
+                            <Clock className="h-4 w-4 mr-1" />
+                            {formatTime(sleepEntry.heureReveil)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Durée</p>
+                          <p className="text-lg font-semibold text-primary">
+                            {sleepEntry.dureeSommeil.toFixed(1)}h
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Qualité</p>
+                          <div className="flex space-x-1">
+                            {getQualityStars(sleepEntry.qualiteSommeil)}
+                          </div>
+                        </div>
+                      </div>
+                      {sleepEntry.notes && (
+                        <div className="mt-4">
+                          <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
+                          <p className="text-sm text-foreground bg-muted p-2 rounded">
+                            {sleepEntry.notes}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
 
           {/* Historique Repas */}
-          <TabsContent value="repas" className="space-y-4">
-            {filteredRepas.map((entry) => (
-              <Card key={entry.id} className="hover:shadow-medium transition-smooth">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Calendar className="h-5 w-5 text-warning" />
-                        <span>{formatDate(entry.date)}</span>
-                        <Badge className="capitalize">
-                          {entry.typeRepas.replace('-', ' ')}
-                        </Badge>
-                      </CardTitle>
-                      <CardDescription>
-                        {entry.aliments.length} aliments
-                        {entry.calories && ` • ${entry.calories} calories`}
-                      </CardDescription>
-                    </div>
-                     <div className="flex space-x-2">
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={() => handleEdit(entry.id, 'repas')}
-                       >
-                         <Edit className="h-4 w-4" />
-                       </Button>
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={() => handleDelete(entry.id, 'repas')}
-                       >
-                         <Trash2 className="h-4 w-4" />
-                       </Button>
-                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-2">Aliments</p>
-                      <div className="flex flex-wrap gap-2">
-                        {entry.aliments.map((aliment, index) => (
-                          <Badge key={index} variant="outline">
-                            {aliment}
-                          </Badge>
-                        ))}
+          {activeTab === 'repas' && (
+            <div className="space-y-4">
+              {filteredRepas.map((entry) => {
+                const mealEntry = entry as EntreeRepas;
+                return (
+                  <Card key={mealEntry.id} className="hover:shadow-medium transition-smooth">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="flex items-center space-x-2">
+                            <Calendar className="h-5 w-5 text-warning" />
+                            <span>{formatDate(mealEntry.date)}</span>
+                            <Badge className="capitalize">
+                              {mealEntry.typeRepas.replace('-', ' ')}
+                            </Badge>
+                          </CardTitle>
+                          <CardDescription>
+                            {mealEntry.aliments.length} aliments
+                            {mealEntry.calories && ` • ${mealEntry.calories} calories`}
+                          </CardDescription>
+                        </div>
+                         <div className="flex space-x-2">
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => handleEdit(mealEntry, 'repas')}
+                           >
+                             <Edit className="h-4 w-4" />
+                           </Button>
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => handleDelete(mealEntry.id, 'repas')}
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </Button>
+                         </div>
                       </div>
-                    </div>
-                    
-                    {(entry.calories || entry.proteines || entry.glucides || entry.lipides) && (
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {entry.calories && (
-                          <div>
-                            <p className="text-sm text-muted-foreground">Calories</p>
-                            <p className="font-semibold">{entry.calories}</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground mb-2">Aliments</p>
+                          <div className="flex flex-wrap gap-2">
+                            {mealEntry.aliments.map((aliment, index) => (
+                              <Badge key={index} variant="outline">
+                                {aliment}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {(mealEntry.calories || mealEntry.proteines || mealEntry.glucides || mealEntry.lipides) && (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {mealEntry.calories && (
+                              <div>
+                                <p className="text-sm text-muted-foreground">Calories</p>
+                                <p className="font-semibold">{mealEntry.calories}</p>
+                              </div>
+                            )}
+                            {mealEntry.proteines && (
+                              <div>
+                                <p className="text-sm text-muted-foreground">Protéines</p>
+                                <p className="font-semibold">{mealEntry.proteines}g</p>
+                              </div>
+                            )}
+                            {mealEntry.glucides && (
+                              <div>
+                                <p className="text-sm text-muted-foreground">Glucides</p>
+                                <p className="font-semibold">{mealEntry.glucides}g</p>
+                              </div>
+                            )}
+                            {mealEntry.lipides && (
+                              <div>
+                                <p className="text-sm text-muted-foreground">Lipides</p>
+                                <p className="font-semibold">{mealEntry.lipides}g</p>
+                              </div>
+                            )}
                           </div>
                         )}
-                        {entry.proteines && (
+                        
+                        {mealEntry.notes && (
                           <div>
-                            <p className="text-sm text-muted-foreground">Protéines</p>
-                            <p className="font-semibold">{entry.proteines}g</p>
-                          </div>
-                        )}
-                        {entry.glucides && (
-                          <div>
-                            <p className="text-sm text-muted-foreground">Glucides</p>
-                            <p className="font-semibold">{entry.glucides}g</p>
-                          </div>
-                        )}
-                        {entry.lipides && (
-                          <div>
-                            <p className="text-sm text-muted-foreground">Lipides</p>
-                            <p className="font-semibold">{entry.lipides}g</p>
+                            <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
+                            <p className="text-sm text-foreground bg-muted p-2 rounded">
+                              {mealEntry.notes}
+                            </p>
                           </div>
                         )}
                       </div>
-                    )}
-                    
-                    {entry.notes && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
-                        <p className="text-sm text-foreground bg-muted p-2 rounded">
-                          {entry.notes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
 
           {/* Historique Activités */}
-          <TabsContent value="activite" className="space-y-4">
-            {filteredActivite.map((entry) => (
-              <Card key={entry.id} className="hover:shadow-medium transition-smooth">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Calendar className="h-5 w-5 text-success" />
-                        <span>{formatDate(entry.date)}</span>
-                        {getIntensityBadge(entry.intensite)}
-                      </CardTitle>
-                      <CardDescription>
-                        {entry.typeActivite} • {entry.duree} minutes
-                      </CardDescription>
-                    </div>
-                     <div className="flex space-x-2">
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={() => handleEdit(entry.id, 'activite')}
-                       >
-                         <Edit className="h-4 w-4" />
-                       </Button>
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={() => handleDelete(entry.id, 'activite')}
-                       >
-                         <Trash2 className="h-4 w-4" />
-                       </Button>
-                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Activité</p>
-                      <p className="text-lg font-semibold">{entry.typeActivite}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Durée</p>
-                      <p className="text-lg font-semibold text-success">{entry.duree} min</p>
-                    </div>
-                    {entry.caloriesBrulees && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Calories brûlées</p>
-                        <p className="text-lg font-semibold text-warning">
-                          {entry.caloriesBrulees} cal
-                        </p>
+          {activeTab === 'activite' && (
+            <div className="space-y-4">
+              {filteredActivite.map((entry) => {
+                const activityEntry = entry as EntreeActivite;
+                return (
+                  <Card key={activityEntry.id} className="hover:shadow-medium transition-smooth">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="flex items-center space-x-2">
+                            <Calendar className="h-5 w-5 text-success" />
+                            <span>{formatDate(activityEntry.date)}</span>
+                            {getIntensityBadge(activityEntry.intensite)}
+                          </CardTitle>
+                          <CardDescription>
+                            {activityEntry.typeActivite} • {activityEntry.duree} minutes
+                          </CardDescription>
+                        </div>
+                         <div className="flex space-x-2">
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => handleEdit(activityEntry, 'activite')}
+                           >
+                             <Edit className="h-4 w-4" />
+                           </Button>
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => handleDelete(activityEntry.id, 'activite')}
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </Button>
+                         </div>
                       </div>
-                    )}
-                  </div>
-                  
-                  {entry.notes && (
-                    <div className="mt-4">
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
-                      <p className="text-sm text-foreground bg-muted p-2 rounded">
-                        {entry.notes}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-        </Tabs>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Activité</p>
+                          <p className="text-lg font-semibold">{activityEntry.typeActivite}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Durée</p>
+                          <p className="text-lg font-semibold text-success">{activityEntry.duree} min</p>
+                        </div>
+                        {activityEntry.caloriesBrulees && (
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Calories brûlées</p>
+                            <p className="text-lg font-semibold text-warning">
+                              {activityEntry.caloriesBrulees} cal
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {activityEntry.notes && (
+                        <div className="mt-4">
+                          <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
+                          <p className="text-sm text-foreground bg-muted p-2 rounded">
+                            {activityEntry.notes}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* État vide */}
         {filteredSommeil.length === 0 && filteredRepas.length === 0 && filteredActivite.length === 0 && (
@@ -475,6 +588,15 @@ export default function History() {
           </Card>
         )}
       </main>
+
+      {/* Popup de modification d'entrée */}
+      <EditEntryModal 
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        entry={selectedEntry}
+        type={selectedEntryType}
+        onSave={handleSaveEntry}
+      />
     </div>
   );
 }
