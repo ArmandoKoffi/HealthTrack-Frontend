@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 import { 
   User, 
   Save, 
@@ -28,6 +29,7 @@ export default function Profile() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [formData, setFormData] = useState({
     nom: user?.nom || '',
     prenom: user?.prenom || '',
@@ -171,18 +173,19 @@ export default function Profile() {
                       <span>Modifier</span>
                     </Button>
                   ) : (
-                    <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         variant="outline"
                         onClick={cancelEdit}
                         disabled={isLoading}
+                        className="flex-1 sm:flex-none"
                       >
                         Annuler
                       </Button>
                       <Button
                         onClick={handleSubmit}
                         disabled={isLoading}
-                        className="gradient-primary text-white"
+                        className="flex-1 sm:flex-none gradient-primary text-white"
                       >
                         {isLoading ? (
                           <>
@@ -282,7 +285,7 @@ export default function Profile() {
                         value={formData.dateNaissance}
                         onChange={handleChange}
                         disabled={!isEditing}
-                        className="pl-10"
+                        className="pl-10 w-full"
                       />
                     </div>
                   </div>
@@ -295,7 +298,7 @@ export default function Profile() {
                       Informations physiques
                     </h4>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="poids">Poids (kg)</Label>
                         <div className="relative">
@@ -425,7 +428,11 @@ export default function Profile() {
                     <span className="text-sm font-medium">Aujourd'hui</span>
                   </div>
                   <Separator />
-                  <Button variant="outline" className="w-full text-sm">
+                  <Button 
+                    variant="outline" 
+                    className="w-full text-sm"
+                    onClick={() => setShowPasswordModal(true)}
+                  >
                     Changer le mot de passe
                   </Button>
                 </div>
@@ -447,6 +454,12 @@ export default function Profile() {
           </div>
         </div>
       </main>
+
+      {/* Popup de changement de mot de passe */}
+      <ChangePasswordModal 
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
     </div>
   );
 }
