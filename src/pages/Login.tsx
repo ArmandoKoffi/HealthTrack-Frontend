@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,12 +9,21 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
-  const [email, setEmail] = useState('marie.dupont@email.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Vérifier s'il y a un email dans l'URL (après inscription)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const emailFromUrl = urlParams.get('email');
+    if (emailFromUrl) {
+      setEmail(emailFromUrl);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,15 +171,6 @@ export default function Login() {
               </p>
             </div>
 
-            {/* Information de connexion */}
-            <div className="mt-4 p-4 bg-accent rounded-lg border border-border">
-              <p className="text-sm font-medium text-accent-foreground mb-2">
-                Connecté au backend réel
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Cette page utilise maintenant l'API backend réelle pour l'authentification
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>

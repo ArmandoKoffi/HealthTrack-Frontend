@@ -88,15 +88,12 @@ export default function Register() {
       });
       
       if (result.success) {
-        // Sauvegarder le token et les données utilisateur
-        authService.saveToken(result.token!);
-        profileService.saveUserData(result.user!);
-        
         toast({
           title: "Compte créé avec succès !",
-          description: "Bienvenue sur HealthTrack",
+          description: "Veuillez maintenant vous connecter avec votre nouveau compte",
         });
-        navigate('/dashboard');
+        // Rediriger vers la page de connexion avec l'email pré-rempli
+        navigate(`/login?email=${encodeURIComponent(formData.email)}`);
       } else {
         toast({
           title: "Erreur lors de la création du compte",
