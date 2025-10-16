@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { MockAuthService } from '@/services/mockAuth';
+import { useState, useEffect } from 'react';
+import { authService, profileService } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,10 +23,9 @@ import {
 } from 'lucide-react';
 
 export default function Profile() {
-  const authService = MockAuthService.getInstance();
   const { toast } = useToast();
-  const user = authService.getCurrentUser();
   
+  const [user, setUser] = useState(profileService.getUserData());
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -39,6 +38,35 @@ export default function Profile() {
     taille: user?.taille?.toString() || '',
     objectifPoids: user?.objectifPoids?.toString() || ''
   });
+
+  // Charger les données du profil depuis l'API
+  useEffect(() => {
+    const loadProfile = async () => {
+      const token = authService.getToken();
+      if (!token) return;
+
+      try {
+        const result = await profileService.getProfile(token);
+        if (result.success && result.user) {
+          setUser(result.user);
+          profileService.saveUserData(result.user);
+          setFormData({
+            nom: result.user.nom || '',
+            prenom: result.user.prenom || '',
+            email: result.user.email || '',
+            dateNaissance: result.user.dateNaissance || '',
+            poids: result.user.poids?.toString() || '',
+            taille: result.user.taille?.toString() || '',
+            objectifPoids: result.user.objectifPoids?.toString() || ''
+          });
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du profil:', error);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   if (!user) return null;
 
@@ -53,7 +81,39 @@ export default function Profile() {
     e.preventDefault();
     setIsLoading(true);
 
+    const token = authService.getToken();
+    if (!token) {
+      toast({
+        title: "Erreur d'authentification",
+        description: "Veuillez vous reconnecter",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      // Validation côté client
+      const validationErrors = profileService.validateProfileUpdate({
+        nom: formData.nom,
+        prenom: formData.prenom,
+        email: formData.email,
+        dateNaissance: formData.dateNaissance,
+        poids: formData.poids ? parseFloat(formData.poids) : undefined,
+        taille: formData.taille ? parseFloat(formData.taille) : undefined,
+        objectifPoids: formData.objectifPoids ? parseFloat(formData.objectifPoids) : undefined
+      });
+
+      if (validationErrors.length > 0) {
+        toast({
+          title: "Erreur de validation",
+          description: validationErrors.join(', '),
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const updates = {
         nom: formData.nom,
         prenom: formData.prenom,
@@ -64,9 +124,12 @@ export default function Profile() {
         objectifPoids: formData.objectifPoids ? parseFloat(formData.objectifPoids) : undefined
       };
 
-      const result = await authService.updateProfile(updates);
+      const result = await profileService.updateProfile(updates, token);
       
-      if (result.success) {
+      if (result.success && result.user) {
+        setUser(result.user);
+        profileService.saveUserData(result.user);
+        
         toast({
           title: "Profil mis à jour !",
           description: "Vos informations ont été sauvegardées avec succès",
@@ -75,14 +138,15 @@ export default function Profile() {
       } else {
         toast({
           title: "Erreur",
-          description: result.error || "Impossible de mettre à jour le profil",
+          description: result.message || "Impossible de mettre à jour le profil",
           variant: "destructive",
         });
       }
     } catch (error) {
+      console.error('Erreur de mise à jour du profil:', error);
       toast({
         title: "Erreur",
-        description: "Une erreur inattendue s'est produite",
+        description: error instanceof Error ? error.message : "Une erreur inattendue s'est produite",
         variant: "destructive",
       });
     } finally {

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { MockAuthService } from '@/services/mockAuth';
+import { authService, profileService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordStrength } from '@/components/PasswordStrength';
 import { Loader2, Mail, Lock, User, Calendar, Scale, Ruler, Eye, EyeOff } from 'lucide-react';
@@ -25,7 +25,6 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const authService = MockAuthService.getInstance();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -41,7 +40,7 @@ export default function Register() {
     const hasLower = /[a-z]/.test(password);
     const hasUpper = /[A-Z]/.test(password);
     const hasNumber = /\d/.test(password);
-    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
     
     const requiredCriteria = [hasMinLength, hasLower, hasUpper, hasNumber];
     const metRequired = requiredCriteria.filter(Boolean).length;
@@ -80,6 +79,7 @@ export default function Register() {
       const result = await authService.register({
         email: formData.email,
         password: formData.password,
+        confirmPassword: formData.confirmPassword,
         nom: formData.nom,
         prenom: formData.prenom,
         dateNaissance: formData.dateNaissance,
@@ -88,6 +88,10 @@ export default function Register() {
       });
       
       if (result.success) {
+        // Sauvegarder le token et les données utilisateur
+        authService.saveToken(result.token!);
+        profileService.saveUserData(result.user!);
+        
         toast({
           title: "Compte créé avec succès !",
           description: "Bienvenue sur HealthTrack",
@@ -96,14 +100,15 @@ export default function Register() {
       } else {
         toast({
           title: "Erreur lors de la création du compte",
-          description: result.error || "Une erreur est survenue",
+          description: result.message || "Une erreur est survenue",
           variant: "destructive",
         });
       }
     } catch (error) {
+      console.error('Erreur d\'inscription:', error);
       toast({
-        title: "Erreur",
-        description: "Une erreur inattendue s'est produite",
+        title: "Erreur d'inscription",
+        description: error instanceof Error ? error.message : "Une erreur inattendue s'est produite",
         variant: "destructive",
       });
     } finally {

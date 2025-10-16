@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { authService, profileService } from '@/services/api';
 import { Loader2, Eye, EyeOff, Lock } from 'lucide-react';
 
 interface ChangePasswordModalProps {
@@ -35,66 +36,60 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
     e.preventDefault();
     setIsLoading(true);
 
+    const token = authService.getToken();
+    if (!token) {
+      toast({
+        title: "Erreur d'authentification",
+        description: "Veuillez vous reconnecter",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       // Validation côté client
-      if (formData.newPassword.length < 8) {
+      const validationErrors = profileService.validatePasswordChange(formData);
+      
+      if (validationErrors.length > 0) {
         toast({
-          title: "Erreur",
-          description: "Le nouveau mot de passe doit contenir au moins 8 caractères",
+          title: "Erreur de validation",
+          description: validationErrors.join(', '),
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
 
-      if (formData.newPassword !== formData.confirmPassword) {
+      // Appel à l'API backend
+      const result = await profileService.changePassword(formData, token);
+      
+      if (result.success) {
+        toast({
+          title: "Succès !",
+          description: "Votre mot de passe a été changé avec succès",
+        });
+
+        // Réinitialiser le formulaire et fermer le modal
+        setFormData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        onClose();
+      } else {
         toast({
           title: "Erreur",
-          description: "Les nouveaux mots de passe ne correspondent pas",
+          description: result.message || "Impossible de changer le mot de passe",
           variant: "destructive",
         });
-        return;
       }
-
-      if (formData.currentPassword === formData.newPassword) {
-        toast({
-          title: "Erreur",
-          description: "Le nouveau mot de passe doit être différent de l'ancien",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Simulation de l'appel API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Ici, vous intégrerez l'appel à votre API backend
-      // const response = await fetch('/api/profile/change-password', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify(formData)
-      // });
-
-      // Pour l'instant, simulation de succès
-      toast({
-        title: "Succès !",
-        description: "Votre mot de passe a été changé avec succès",
-      });
-
-      // Réinitialiser le formulaire et fermer le modal
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      onClose();
 
     } catch (error) {
+      console.error('Erreur de changement de mot de passe:', error);
       toast({
         title: "Erreur",
-        description: "Une erreur s'est produite lors du changement de mot de passe",
+        description: error instanceof Error ? error.message : "Une erreur s'est produite lors du changement de mot de passe",
         variant: "destructive",
       });
     } finally {

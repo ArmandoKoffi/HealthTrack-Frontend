@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { MockAuthService } from '@/services/mockAuth';
+import { authService, profileService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
@@ -15,16 +15,19 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const authService = MockAuthService.getInstance();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const result = await authService.login(email, password);
+      const result = await authService.login({ email, password });
       
       if (result.success) {
+        // Sauvegarder le token et les données utilisateur
+        authService.saveToken(result.token!);
+        profileService.saveUserData(result.user!);
+        
         toast({
           title: "Connexion réussie !",
           description: "Bienvenue sur HealthTrack",
@@ -33,14 +36,15 @@ export default function Login() {
       } else {
         toast({
           title: "Erreur de connexion",
-          description: result.error || "Une erreur est survenue",
+          description: result.message || "Une erreur est survenue",
           variant: "destructive",
         });
       }
     } catch (error) {
+      console.error('Erreur de connexion:', error);
       toast({
-        title: "Erreur",
-        description: "Une erreur inattendue s'est produite",
+        title: "Erreur de connexion",
+        description: error instanceof Error ? error.message : "Une erreur inattendue s'est produite",
         variant: "destructive",
       });
     } finally {
@@ -158,14 +162,13 @@ export default function Login() {
               </p>
             </div>
 
-            {/* Compte de démo */}
+            {/* Information de connexion */}
             <div className="mt-4 p-4 bg-accent rounded-lg border border-border">
               <p className="text-sm font-medium text-accent-foreground mb-2">
-                Compte de démonstration :
+                Connecté au backend réel
               </p>
               <p className="text-xs text-muted-foreground">
-                Email: marie.dupont@email.com<br />
-                Mot de passe: password123
+                Cette page utilise maintenant l'API backend réelle pour l'authentification
               </p>
             </div>
           </CardContent>
