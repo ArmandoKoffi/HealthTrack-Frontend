@@ -19,12 +19,12 @@ import Settings from "./pages/Settings";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Tutorial from "./components/Tutorial";
-import { useTutorial } from "./hooks/useTutorial";
+import { TutorialProvider, useTutorialContext } from "./contexts/TutorialContext";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { showTutorial, closeTutorial, completeTutorial } = useTutorial();
+  const { showTutorial, closeTutorial, completeTutorial } = useTutorialContext();
 
   return (
     <>
@@ -61,9 +61,15 @@ const AppContent = () => {
   );
 };
 
+const AppWithProvider = () => (
+  <TutorialProvider>
+    <AppContent />
+  </TutorialProvider>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AppContent />
+    <AppWithProvider />
   </QueryClientProvider>
 );
 

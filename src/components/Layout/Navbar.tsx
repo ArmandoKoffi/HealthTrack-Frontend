@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MockAuthService } from '@/services/mockAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useTutorial } from '@/hooks/useTutorial';
+import { useTutorialContext } from '@/contexts/TutorialContext';
 import { 
   Activity, 
   BarChart3, 
@@ -32,7 +32,7 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { startTutorial } = useTutorial();
+  const { startTutorial } = useTutorialContext();
   const authService = MockAuthService.getInstance();
   const user = authService.getCurrentUser();
 

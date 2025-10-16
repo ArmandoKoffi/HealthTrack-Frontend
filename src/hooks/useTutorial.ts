@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import { MockAuthService } from '@/services/mockAuth';
 
 export function useTutorial() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
-  const authService = MockAuthService.getInstance();
 
   useEffect(() => {
     // Vérifier si le tutoriel a déjà été complété
@@ -13,28 +11,37 @@ export function useTutorial() {
       setTutorialCompleted(true);
     } else {
       // Afficher automatiquement le tutoriel après connexion
-      const checkAuthAndShowTutorial = () => {
-        if (authService.isAuthenticated()) {
+      // Utiliser une logique simple basée sur la navigation
+      const checkAndShowTutorial = () => {
+        // Vérifier si nous sommes sur une page connectée
+        const isOnConnectedPage = window.location.pathname !== '/' && 
+                                 window.location.pathname !== '/login' && 
+                                 window.location.pathname !== '/register' &&
+                                 window.location.pathname !== '/mot-de-passe-oublie' &&
+                                 window.location.pathname !== '/reset-password';
+        
+        if (isOnConnectedPage) {
           const hasSeenTutorial = localStorage.getItem('healthtrack_tutorial_shown_after_login');
           if (!hasSeenTutorial) {
             localStorage.setItem('healthtrack_tutorial_shown_after_login', 'true');
             setTimeout(() => {
               setShowTutorial(true);
-            }, 1500); // Délai pour laisser l'interface se charger après connexion
+            }, 2000); // Délai plus long pour être sûr que l'interface est chargée
           }
         }
       };
 
-      // Vérifier immédiatement et écouter les changements d'authentification
-      checkAuthAndShowTutorial();
+      // Vérifier immédiatement
+      checkAndShowTutorial();
       
       // Vérifier périodiquement (pour gérer les redirections)
-      const interval = setInterval(checkAuthAndShowTutorial, 1000);
+      const interval = setInterval(checkAndShowTutorial, 500);
       return () => clearInterval(interval);
     }
-  }, [authService]);
+  }, []);
 
   const startTutorial = () => {
+    console.log('Démarrage du tutoriel');
     setShowTutorial(true);
   };
 

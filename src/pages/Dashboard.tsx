@@ -37,18 +37,28 @@ export default function Dashboard() {
 
   if (!user) return null;
 
-  const aujourdhui = stats[stats.length - 1];
+  const aujourdhui = stats[stats.length - 1] || {
+    sommeil: 0,
+    calories: 0,
+    activiteMinutes: 0
+  };
   const statsRecentes = stats.slice(-7);
 
   // Calculs pour les statistiques d'aujourd'hui
-  const sommeilAujourdhui = aujourdhui?.sommeil || 0;
-  const caloriesAujourdhui = aujourdhui?.calories || 0;
-  const activiteAujourdhui = aujourdhui?.activiteMinutes || 0;
+  const sommeilAujourdhui = aujourdhui.sommeil || 0;
+  const caloriesAujourdhui = aujourdhui.calories || 0;
+  const activiteAujourdhui = aujourdhui.activiteMinutes || 0;
 
-  // Moyennes de la semaine
-  const sommeilMoyen = statsRecentes.reduce((acc, s) => acc + (s.sommeil || 0), 0) / statsRecentes.length;
-  const caloriesMoyennes = statsRecentes.reduce((acc, s) => acc + (s.calories || 0), 0) / statsRecentes.length;
-  const activiteMoyenne = statsRecentes.reduce((acc, s) => acc + (s.activiteMinutes || 0), 0) / statsRecentes.length;
+  // Moyennes de la semaine avec vérification pour éviter NaN
+  const sommeilMoyen = statsRecentes.length > 0 
+    ? statsRecentes.reduce((acc, s) => acc + (s.sommeil || 0), 0) / statsRecentes.length 
+    : 0;
+  const caloriesMoyennes = statsRecentes.length > 0 
+    ? statsRecentes.reduce((acc, s) => acc + (s.calories || 0), 0) / statsRecentes.length 
+    : 0;
+  const activiteMoyenne = statsRecentes.length > 0 
+    ? statsRecentes.reduce((acc, s) => acc + (s.activiteMinutes || 0), 0) / statsRecentes.length 
+    : 0;
 
   const objectifSommeil = objectifs.find(o => o.type === 'sommeil');
   const objectifActivite = objectifs.find(o => o.type === 'activite');
@@ -83,9 +93,9 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground">
                 Moyenne: {sommeilMoyen.toFixed(1)}h/nuit
               </p>
-              {objectifSommeil && (
+              {objectifSommeil && objectifSommeil.valeurCible > 0 && (
                 <Progress 
-                  value={(sommeilAujourdhui / objectifSommeil.valeurCible) * 100} 
+                  value={Math.min((sommeilAujourdhui / objectifSommeil.valeurCible) * 100, 100)} 
                   className="mt-2" 
                 />
               )}
@@ -106,7 +116,7 @@ export default function Dashboard() {
                 Moyenne: {Math.round(caloriesMoyennes)} cal/jour
               </p>
               <Progress 
-                value={(caloriesAujourdhui / 2000) * 100} 
+                value={Math.min((caloriesAujourdhui / 2000) * 100, 100)} 
                 className="mt-2" 
               />
             </CardContent>
@@ -125,9 +135,9 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground">
                 Moyenne: {Math.round(activiteMoyenne)} min/jour
               </p>
-              {objectifActivite && (
+              {objectifActivite && objectifActivite.valeurCible > 0 && (
                 <Progress 
-                  value={(activiteAujourdhui / (objectifActivite.valeurCible / 7)) * 100} 
+                  value={Math.min((activiteAujourdhui / (objectifActivite.valeurCible / 7)) * 100, 100)} 
                   className="mt-2" 
                 />
               )}
@@ -143,9 +153,12 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold text-white">
                 {Math.round(
-                  ((sommeilAujourdhui / 8) + 
-                   (caloriesAujourdhui / 2000) + 
-                   (activiteAujourdhui / 60)) / 3 * 100
+                  Math.min(
+                    ((sommeilAujourdhui / 8) + 
+                     (caloriesAujourdhui / 2000) + 
+                     (activiteAujourdhui / 60)) / 3 * 100,
+                    100
+                  )
                 )}%
               </div>
               <p className="text-xs text-white/80">
@@ -214,7 +227,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <Progress 
-                    value={(objectif.valeurActuelle / objectif.valeurCible) * 100}
+                    value={objectif.valeurCible > 0 ? Math.min((objectif.valeurActuelle / objectif.valeurCible) * 100, 100) : 0}
                     className="h-2"
                   />
                 </div>
