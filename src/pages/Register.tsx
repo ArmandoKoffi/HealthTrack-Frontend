@@ -269,7 +269,7 @@ export default function Register() {
                       type="date"
                       value={formData.dateNaissance}
                       onChange={handleChange}
-                      className="pl-10"
+                      className="pl-10 w-full"
                       required
                     />
                   </div>
