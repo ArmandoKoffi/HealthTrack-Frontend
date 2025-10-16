@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AddEntry from "./pages/AddEntry";
 import Statistics from "./pages/Statistics";
@@ -17,33 +18,52 @@ import Goals from "./pages/Goals";
 import Settings from "./pages/Settings";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import Tutorial from "./components/Tutorial";
+import { useTutorial } from "./hooks/useTutorial";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  const { showTutorial, closeTutorial, completeTutorial } = useTutorial();
+
+  return (
+    <>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/ajouter" element={<AddEntry />} />
+            <Route path="/statistiques" element={<Statistics />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/profil" element={<Profile />} />
+            <Route path="/historique" element={<History />} />
+            <Route path="/objectifs" element={<Goals />} />
+            <Route path="/parametres" element={<Settings />} />
+            <Route path="/rapports" element={<Reports />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+
+      <Tutorial 
+        isOpen={showTutorial} 
+        onClose={closeTutorial}
+        onComplete={completeTutorial}
+      />
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/ajouter" element={<AddEntry />} />
-          <Route path="/statistiques" element={<Statistics />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/profil" element={<Profile />} />
-          <Route path="/historique" element={<History />} />
-          <Route path="/objectifs" element={<Goals />} />
-          <Route path="/parametres" element={<Settings />} />
-          <Route path="/rapports" element={<Reports />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AppContent />
   </QueryClientProvider>
 );
 

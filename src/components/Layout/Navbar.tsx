@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MockAuthService } from '@/services/mockAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useTutorial } from '@/hooks/useTutorial';
 import { 
   Activity, 
   BarChart3, 
@@ -23,13 +24,15 @@ import {
   History,
   Target,
   Settings,
-  FileText
+  FileText,
+  HelpCircle
 } from 'lucide-react';
 
 export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { startTutorial } = useTutorial();
   const authService = MockAuthService.getInstance();
   const user = authService.getCurrentUser();
 
@@ -94,8 +97,21 @@ export const Navbar = () => {
             })}
           </div>
 
-          {/* Menu utilisateur */}
-          <DropdownMenu>
+          {/* Boutons d'action */}
+          <div className="flex items-center space-x-2">
+            {/* Bouton d'aide */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={startTutorial}
+              className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground transition-smooth"
+              title="Aide et tutoriel"
+            >
+              <HelpCircle className="h-5 w-5" />
+            </Button>
+
+            {/* Menu utilisateur */}
+            <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
@@ -135,7 +151,8 @@ export const Navbar = () => {
                 <span>Déconnexion</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
