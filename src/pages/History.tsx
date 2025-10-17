@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { EntreeSommeil, EntreeRepas, EntreeActivite } from '@/types/health';
+import { EntreeSommeil, EntreeRepas, EntreeActivite, User } from '@/types/health';
 
 export default function History() {
   const [searchParams] = useSearchParams();
@@ -37,7 +37,7 @@ export default function History() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<EntreeSommeil | EntreeRepas | EntreeActivite | null>(null);
   const [selectedEntryType, setSelectedEntryType] = useState<'sommeil' | 'repas' | 'activite'>('sommeil');
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   
   const dataService = MockDataService.getInstance();
   const { toast } = useToast();

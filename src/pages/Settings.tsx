@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { authService } from '@/services/mockAuth';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
+import { User } from '@/types/health';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,10 +25,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const authService = authService.getInstance();
-  const { toast } = useToast();
-  const user = authService.getCurrentUser();
-  
+  const [user, setUser] = useState<User | null>(null);
   const [settings, setSettings] = useState({
     notifications: {
       rappelsSommeil: true,
@@ -55,6 +54,31 @@ export default function SettingsPage() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Vérifier si l'utilisateur est authentifié
+    if (!authService.isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
+    // Récupérer les données utilisateur depuis localStorage
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données utilisateur:', error);
+        authService.logout();
+        navigate('/login');
+      }
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   if (!user) return null;
 

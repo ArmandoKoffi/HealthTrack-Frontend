@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { authService } from '@/services/mockAuth';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '@/services/api';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
+import { User } from '@/types/health';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,17 +22,37 @@ import { Notification } from '@/types/health';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const authService = authService.getInstance();
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
   const dataService = MockDataService.getInstance();
   const { toast } = useToast();
-  const user = authService.getCurrentUser();
 
   useEffect(() => {
-    if (user) {
-      const notificationsData = dataService.getNotifications(user.id);
-      setNotifications(notificationsData);
+    // Vérifier si l'utilisateur est authentifié
+    if (!authService.isAuthenticated()) {
+      navigate('/login');
+      return;
     }
-  }, [user]);
+
+    // Récupérer les données utilisateur depuis localStorage
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // Charger les données mockées
+        const notificationsData = dataService.getNotifications(parsedUser.id);
+        setNotifications(notificationsData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données utilisateur:', error);
+        authService.logout();
+        navigate('/login');
+      }
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   if (!user) return null;
 
