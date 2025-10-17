@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -9,9 +10,10 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { MockAuthService } from '@/services/mockAuth';
+import { authService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { useTutorialContext } from '@/contexts/TutorialContext';
+import { User as UserType } from '@/types/health';
 import { 
   Activity, 
   BarChart3, 
@@ -33,8 +35,20 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { startTutorial } = useTutorialContext();
-  const authService = MockAuthService.getInstance();
-  const user = authService.getCurrentUser();
+  const [user, setUser] = useState<UserType | null>(null);
+
+  useEffect(() => {
+    // Récupérer les données utilisateur depuis localStorage
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données utilisateur:', error);
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     authService.logout();
@@ -47,11 +61,11 @@ export const Navbar = () => {
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Accueil' },
-    { path: '/ajouter', icon: Plus, label: 'Ajouter' },
-    { path: '/statistiques', icon: BarChart3, label: 'Stats' },
-    { path: '/historique', icon: History, label: 'Historique' },
-    { path: '/objectifs', icon: Target, label: 'Objectifs' },
-    { path: '/rapports', icon: FileText, label: 'Rapports' }
+    { path: '/add-entry', icon: Plus, label: 'Ajouter' },
+    { path: '/statistics', icon: BarChart3, label: 'Stats' },
+    { path: '/history', icon: History, label: 'Historique' },
+    { path: '/goals', icon: Target, label: 'Objectifs' },
+    { path: '/reports', icon: FileText, label: 'Rapports' }
   ];
 
   const getUserInitials = () => {
@@ -137,11 +151,11 @@ export const Navbar = () => {
                 <Bell className="mr-2 h-4 w-4" />
                 <span>Notifications</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/parametres')}>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Paramètres</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/profil')}>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profil</span>
               </DropdownMenuItem>
