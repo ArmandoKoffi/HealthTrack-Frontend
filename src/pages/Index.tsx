@@ -7,7 +7,6 @@ import { Heart, Activity, BarChart3, Users } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
-  const authService = authService.getInstance();
 
   useEffect(() => {
     // Rediriger automatiquement si déjà connecté
