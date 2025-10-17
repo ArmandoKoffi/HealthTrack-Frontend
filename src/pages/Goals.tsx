@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { MockAuthService } from '@/services/mockAuth';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '@/services/api';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
+import { User } from '@/types/health';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,23 +28,43 @@ export default function Goals() {
   const [objectifs, setObjectifs] = useState<ObjectifUtilisateur[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     type: 'poids' as 'poids' | 'sommeil' | 'activite' | 'calories',
     valeurCible: '',
     dateFinSouhaitee: ''
   });
   
-  const authService = MockAuthService.getInstance();
+  const navigate = useNavigate();
   const dataService = MockDataService.getInstance();
   const { toast } = useToast();
-  const user = authService.getCurrentUser();
 
   useEffect(() => {
-    if (user) {
-      const objectifsData = dataService.getObjectifs(user.id);
-      setObjectifs(objectifsData);
+    // Vérifier si l'utilisateur est authentifié
+    if (!authService.isAuthenticated()) {
+      navigate('/login');
+      return;
     }
-  }, [user]);
+
+    // Récupérer les données utilisateur depuis localStorage
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // Charger les données mockées
+        const objectifsData = dataService.getObjectifs(parsedUser.id);
+        setObjectifs(objectifsData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données utilisateur:', error);
+        authService.logout();
+        navigate('/login');
+      }
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   if (!user) return null;
 

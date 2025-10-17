@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { MockAuthService } from '@/services/mockAuth';
+import { authService } from '@/services/api';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,13 +26,12 @@ export default function AddEntry() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const authService = MockAuthService.getInstance();
   const dataService = MockDataService.getInstance();
-  const user = authService.getCurrentUser();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   const typeParam = searchParams.get('type') || 'sommeil';
   const [activeTab, setActiveTab] = useState(typeParam);
-  const [isLoading, setIsLoading] = useState(false);
 
   // États pour le sommeil
   const [sommeilData, setSommeilData] = useState({
@@ -60,6 +59,29 @@ export default function AddEntry() {
     intensite: 'modere' as 'faible' | 'modere' | 'intense',
     notes: ''
   });
+
+  useEffect(() => {
+    // Vérifier si l'utilisateur est authentifié
+    if (!authService.isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
+    // Récupérer les données utilisateur depuis localStorage
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données utilisateur:', error);
+        authService.logout();
+        navigate('/login');
+      }
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   useEffect(() => {
     setActiveTab(typeParam);

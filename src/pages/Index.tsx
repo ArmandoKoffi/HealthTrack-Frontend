@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MockAuthService } from '@/services/mockAuth';
+import { authService } from '@/services/mockAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Activity, BarChart3, Users } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
-  const authService = MockAuthService.getInstance();
+  const authService = authService.getInstance();
 
   useEffect(() => {
     // Rediriger automatiquement si déjà connecté

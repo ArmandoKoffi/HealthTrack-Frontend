@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MockAuthService } from '@/services/mockAuth';
+import { authService } from '@/services/mockAuth';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +20,7 @@ import { Notification } from '@/types/health';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const authService = MockAuthService.getInstance();
+  const authService = authService.getInstance();
   const dataService = MockDataService.getInstance();
   const { toast } = useToast();
   const user = authService.getCurrentUser();

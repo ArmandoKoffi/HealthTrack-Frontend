@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { MockAuthService } from '@/services/mockAuth';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '@/services/api';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
+import { User } from '@/types/health';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -32,16 +34,36 @@ import { StatistiquesJournalieres } from '@/types/health';
 
 export default function Statistics() {
   const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
-  const authService = MockAuthService.getInstance();
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
   const dataService = MockDataService.getInstance();
-  const user = authService.getCurrentUser();
 
   useEffect(() => {
-    if (user) {
-      const statsData = dataService.getStatistiquesJournalieres(user.id);
-      setStats(statsData);
+    // Vérifier si l'utilisateur est authentifié
+    if (!authService.isAuthenticated()) {
+      navigate('/login');
+      return;
     }
-  }, [user]);
+
+    // Récupérer les données utilisateur depuis localStorage
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // Charger les données mockées
+        const statsData = dataService.getStatistiquesJournalieres(parsedUser.id);
+        setStats(statsData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données utilisateur:', error);
+        authService.logout();
+        navigate('/login');
+      }
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   if (!user) return null;
 

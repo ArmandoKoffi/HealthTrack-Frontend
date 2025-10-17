@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { MockAuthService } from '@/services/mockAuth';
+import { authService } from '@/services/api';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,21 +37,40 @@ export default function History() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<EntreeSommeil | EntreeRepas | EntreeActivite | null>(null);
   const [selectedEntryType, setSelectedEntryType] = useState<'sommeil' | 'repas' | 'activite'>('sommeil');
+  const [user, setUser] = useState<any>(null);
   
-  const authService = MockAuthService.getInstance();
   const dataService = MockDataService.getInstance();
-  const user = authService.getCurrentUser();
   const { toast } = useToast();
   
   const activeTab = searchParams.get('type') || 'sommeil';
 
   useEffect(() => {
-    if (user) {
-      setSommeilEntries(dataService.getEntreesSommeil(user.id));
-      setRepasEntries(dataService.getEntreesRepas(user.id));
-      setActiviteEntries(dataService.getEntreesActivites(user.id));
+    // Vérifier si l'utilisateur est authentifié
+    if (!authService.isAuthenticated()) {
+      navigate('/login');
+      return;
     }
-  }, [user]);
+
+    // Récupérer les données utilisateur depuis localStorage
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // Charger les données mockées
+        setSommeilEntries(dataService.getEntreesSommeil(parsedUser.id));
+        setRepasEntries(dataService.getEntreesRepas(parsedUser.id));
+        setActiviteEntries(dataService.getEntreesActivites(parsedUser.id));
+      } catch (error) {
+        console.error('Erreur lors du chargement des données utilisateur:', error);
+        authService.logout();
+        navigate('/login');
+      }
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   if (!user) return null;
 

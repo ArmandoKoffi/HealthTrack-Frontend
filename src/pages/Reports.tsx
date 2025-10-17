@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MockAuthService } from '@/services/mockAuth';
+import { authService } from '@/services/mockAuth';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,7 +44,7 @@ export default function Reports() {
   const [reportPeriod, setReportPeriod] = useState('month');
   const [showShareModal, setShowShareModal] = useState(false);
   
-  const authService = MockAuthService.getInstance();
+  const authService = authService.getInstance();
   const dataService = MockDataService.getInstance();
   const user = authService.getCurrentUser();
   const { toast } = useToast();

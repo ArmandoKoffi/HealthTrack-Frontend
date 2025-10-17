@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MockAuthService } from '@/services/mockAuth';
+import { authService } from '@/services/mockAuth';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const authService = MockAuthService.getInstance();
+  const authService = authService.getInstance();
   const { toast } = useToast();
   const user = authService.getCurrentUser();
   
