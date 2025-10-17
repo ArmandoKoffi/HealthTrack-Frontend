@@ -202,19 +202,19 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Link to="/add-entry?type=sommeil">
+              <Link to="/ajouter?type=sommeil">
                 <Button variant="outline" className="w-full justify-start">
                   <Moon className="mr-2 h-4 w-4" />
                   Ajouter sommeil
                 </Button>
               </Link>
-              <Link to="/add-entry?type=repas">
+              <Link to="/ajouter?type=repas">
                 <Button variant="outline" className="w-full justify-start">
                   <Utensils className="mr-2 h-4 w-4" />
                   Ajouter repas
                 </Button>
               </Link>
-              <Link to="/add-entry?type=activite">
+              <Link to="/ajouter?type=activite">
                 <Button variant="outline" className="w-full justify-start">
                   <Activity className="mr-2 h-4 w-4" />
                   Ajouter activité

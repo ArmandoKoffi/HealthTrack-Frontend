@@ -61,11 +61,11 @@ export const Navbar = () => {
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Accueil' },
-    { path: '/add-entry', icon: Plus, label: 'Ajouter' },
-    { path: '/statistics', icon: BarChart3, label: 'Stats' },
-    { path: '/history', icon: History, label: 'Historique' },
-    { path: '/goals', icon: Target, label: 'Objectifs' },
-    { path: '/reports', icon: FileText, label: 'Rapports' }
+    { path: '/ajouter', icon: Plus, label: 'Ajouter' },
+    { path: '/statistiques', icon: BarChart3, label: 'Stats' },
+    { path: '/historique', icon: History, label: 'Historique' },
+    { path: '/objectifs', icon: Target, label: 'Objectifs' },
+    { path: '/rapports', icon: FileText, label: 'Rapports' }
   ];
 
   const getUserInitials = () => {
@@ -151,11 +151,11 @@ export const Navbar = () => {
                 <Bell className="mr-2 h-4 w-4" />
                 <span>Notifications</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
+              <DropdownMenuItem onClick={() => navigate('/parametres')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Paramètres</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
+              <DropdownMenuItem onClick={() => navigate('/profil')}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profil</span>
               </DropdownMenuItem>
