@@ -489,7 +489,7 @@ export default function Profile() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Dernière connexion</span>
-                    <span className="text-sm font-medium">Aujourd'hui</span>
+                    <span className="text-sm font-medium">Aujourd'hui </span>
                   </div>
                   <Separator />
                   <Button 
