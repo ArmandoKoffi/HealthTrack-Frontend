@@ -10,8 +10,7 @@ export function useTutorial() {
     if (completed === 'true') {
       setTutorialCompleted(true);
     } else {
-      // Afficher automatiquement le tutoriel après connexion
-      // Utiliser une logique simple basée sur la navigation
+      // Afficher automatiquement le tutoriel seulement à la première connexion
       const checkAndShowTutorial = () => {
         // Vérifier si nous sommes sur une page connectée
         const isOnConnectedPage = window.location.pathname !== '/' && 
@@ -21,12 +20,28 @@ export function useTutorial() {
                                  window.location.pathname !== '/reset-password';
         
         if (isOnConnectedPage) {
-          const hasSeenTutorial = localStorage.getItem('healthtrack_tutorial_shown_after_login');
-          if (!hasSeenTutorial) {
-            localStorage.setItem('healthtrack_tutorial_shown_after_login', 'true');
-            setTimeout(() => {
-              setShowTutorial(true);
-            }, 2000); // Délai plus long pour être sûr que l'interface est chargée
+          // Récupérer l'utilisateur connecté
+          const userData = localStorage.getItem('userData');
+          if (userData) {
+            try {
+              const user = JSON.parse(userData);
+              const userId = user.id;
+              
+              // Vérifier si le tutoriel a déjà été vu par cet utilisateur
+              const tutorialSeenByUser = localStorage.getItem(`healthtrack_tutorial_seen_${userId}`);
+              
+              if (!tutorialSeenByUser) {
+                // Marquer comme vu pour cet utilisateur
+                localStorage.setItem(`healthtrack_tutorial_seen_${userId}`, 'true');
+                
+                // Afficher le tutoriel avec un délai
+                setTimeout(() => {
+                  setShowTutorial(true);
+                }, 2000); // Délai pour être sûr que l'interface est chargée
+              }
+            } catch (error) {
+              console.error('Erreur lors du chargement des données utilisateur pour le tutoriel:', error);
+            }
           }
         }
       };

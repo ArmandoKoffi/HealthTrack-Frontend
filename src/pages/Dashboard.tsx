@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { MockAuthService } from '@/services/mockAuth';
+import { Link, useNavigate } from 'react-router-dom';
+import { authService } from '@/services/api';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,23 +17,43 @@ import {
   Clock,
   Zap
 } from 'lucide-react';
-import { StatistiquesJournalieres, ObjectifUtilisateur } from '@/types/health';
+import { StatistiquesJournalieres, ObjectifUtilisateur, User } from '@/types/health';
 
 export default function Dashboard() {
   const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
   const [objectifs, setObjectifs] = useState<ObjectifUtilisateur[]>([]);
-  const authService = MockAuthService.getInstance();
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
   const dataService = MockDataService.getInstance();
-  const user = authService.getCurrentUser();
 
   useEffect(() => {
-    if (user) {
-      const statsData = dataService.getStatistiquesJournalieres(user.id);
-      const objectifsData = dataService.getObjectifs(user.id);
-      setStats(statsData);
-      setObjectifs(objectifsData);
+    // Vérifier si l'utilisateur est authentifié
+    if (!authService.isAuthenticated()) {
+      navigate('/login');
+      return;
     }
-  }, [user]);
+
+    // Récupérer les données utilisateur depuis localStorage
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // Charger les données mockées
+        const statsData = dataService.getStatistiquesJournalieres(parsedUser.id);
+        const objectifsData = dataService.getObjectifs(parsedUser.id);
+        setStats(statsData);
+        setObjectifs(objectifsData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données utilisateur:', error);
+        authService.logout();
+        navigate('/login');
+      }
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   if (!user) return null;
 
