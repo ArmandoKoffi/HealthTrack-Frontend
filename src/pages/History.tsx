@@ -59,9 +59,20 @@ export default function History() {
         setUser(parsedUser);
         
         // Charger les données mockées
-        setSommeilEntries(dataService.getEntreesSommeil(parsedUser.id));
-        setRepasEntries(dataService.getEntreesRepas(parsedUser.id));
-        setActiviteEntries(dataService.getEntreesActivites(parsedUser.id));
+        const sommeilData = dataService.getEntreesSommeil(parsedUser.id);
+        const repasData = dataService.getEntreesRepas(parsedUser.id);
+        const activiteData = dataService.getEntreesActivites(parsedUser.id);
+        
+        // Vérifier que les données sont bien des tableaux
+        setSommeilEntries(Array.isArray(sommeilData) ? sommeilData : []);
+        setRepasEntries(Array.isArray(repasData) ? repasData : []);
+        setActiviteEntries(Array.isArray(activiteData) ? activiteData : []);
+        
+        console.log('Données chargées:', {
+          sommeil: sommeilData,
+          repas: repasData,
+          activite: activiteData
+        });
       } catch (error) {
         console.error('Erreur lors du chargement des données utilisateur:', error);
         authService.logout();
@@ -75,12 +86,17 @@ export default function History() {
   if (!user) return null;
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      return new Date(dateString).toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Erreur de formatage de date:', error, dateString);
+      return dateString; // Retourne la chaîne originale en cas d'erreur
+    }
   };
 
   const formatTime = (timeString: string) => {
@@ -154,18 +170,26 @@ export default function History() {
   // Fonction de filtrage par période
   const filterByPeriod = (entries: (EntreeSommeil | EntreeRepas | EntreeActivite)[]) => {
     if (filterPeriod === 'all') return entries;
+    if (!entries || entries.length === 0) return [];
     
     const now = new Date();
     const filtered = entries.filter(entry => {
-      const entryDate = new Date(entry.date);
-      const diffTime = now.getTime() - entryDate.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      switch (filterPeriod) {
-        case 'week': return diffDays <= 7;
-        case 'month': return diffDays <= 30;
-        case 'quarter': return diffDays <= 90;
-        default: return true;
+      try {
+        const entryDate = new Date(entry.date);
+        if (isNaN(entryDate.getTime())) return false;
+        
+        const diffTime = now.getTime() - entryDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        switch (filterPeriod) {
+          case 'week': return diffDays <= 7;
+          case 'month': return diffDays <= 30;
+          case 'quarter': return diffDays <= 90;
+          default: return true;
+        }
+      } catch (error) {
+        console.error('Erreur lors du filtrage par période:', error, entry);
+        return false;
       }
     });
     
@@ -174,16 +198,19 @@ export default function History() {
 
   // Application des filtres et recherche
   const filteredSommeil = useMemo(() => {
+    if (!sommeilEntries || sommeilEntries.length === 0) return [];
     const periodFiltered = filterByPeriod(sommeilEntries);
     return searchEntries(periodFiltered, 'sommeil');
   }, [sommeilEntries, filterPeriod, searchTerm]);
 
   const filteredRepas = useMemo(() => {
+    if (!repasEntries || repasEntries.length === 0) return [];
     const periodFiltered = filterByPeriod(repasEntries);
     return searchEntries(periodFiltered, 'repas');
   }, [repasEntries, filterPeriod, searchTerm]);
 
   const filteredActivite = useMemo(() => {
+    if (!activiteEntries || activiteEntries.length === 0) return [];
     const periodFiltered = filterByPeriod(activiteEntries);
     return searchEntries(periodFiltered, 'activite');
   }, [activiteEntries, filterPeriod, searchTerm]);
