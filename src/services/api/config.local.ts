@@ -1,11 +1,12 @@
 /**
- * Configuration de l'API pour communiquer avec le backend
+ * Configuration de l'API pour le développement local
+ * Ce fichier est utilisé uniquement en développement
  */
 
-// URL de base de l'API - Production uniquement
+// URL de base de l'API - Développement local
 export const apiConfig = {
-  // URL de production du backend déployé sur Render
-  baseURL: 'https://healthtrack-backend-7e6d.onrender.com/api',
+  // URL de développement local
+  baseURL: 'http://localhost:3000/api',
   
   // Timeout par défaut pour les requêtes (en millisecondes)
   timeout: 30000,

@@ -259,9 +259,9 @@ export default function Register() {
 
               {/* Informations physiques */}
               <div className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-2 w-full">
                   <Label htmlFor="dateNaissance">Date de naissance *</Label>
-                  <div className="relative">
+                  <div className="relative w-full">
                     <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="dateNaissance"
@@ -269,7 +269,7 @@ export default function Register() {
                       type="date"
                       value={formData.dateNaissance}
                       onChange={handleChange}
-                      className="pl-10 w-full"
+                      className="pl-10 w-full max-w-full"
                       required
                     />
                   </div>
