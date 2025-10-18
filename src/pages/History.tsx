@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { authService } from '@/services/api';
+import { authService, profileService } from '@/services/api';
 import { MockDataService } from '@/services/mockData';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +38,7 @@ export default function History() {
   const [selectedEntry, setSelectedEntry] = useState<EntreeSommeil | EntreeRepas | EntreeActivite | null>(null);
   const [selectedEntryType, setSelectedEntryType] = useState<'sommeil' | 'repas' | 'activite'>('sommeil');
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   
   const dataService = MockDataService.getInstance();
   const { toast } = useToast();
@@ -45,45 +46,78 @@ export default function History() {
   const activeTab = searchParams.get('type') || 'sommeil';
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est authentifié
-    if (!authService.isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
+    let mounted = true;
 
-    // Récupérer les données utilisateur depuis localStorage
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
+    (async () => {
+      const token = authService.getToken();
+      if (!token) {
+        setLoading(false);
+        navigate('/login');
+        return;
+      }
+
+      let currentUser = profileService.getUserData();
+
+      if (!currentUser) {
+        try {
+          const res = await profileService.getProfile(token);
+          if (res.success && res.user) {
+            currentUser = res.user;
+            profileService.saveUserData(res.user);
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement du profil:', error);
+          authService.logout();
+          profileService.clearUserData();
+          setLoading(false);
+          navigate('/login');
+          return;
+        }
+      }
+
+      if (mounted && currentUser) {
+        setUser(currentUser);
+        const sommeilData = dataService.getEntreesSommeil(currentUser.id);
+        const repasData = dataService.getEntreesRepas(currentUser.id);
+        const activiteData = dataService.getEntreesActivites(currentUser.id);
         
-        // Charger les données mockées
-        const sommeilData = dataService.getEntreesSommeil(parsedUser.id);
-        const repasData = dataService.getEntreesRepas(parsedUser.id);
-        const activiteData = dataService.getEntreesActivites(parsedUser.id);
-        
-        // Vérifier que les données sont bien des tableaux
         setSommeilEntries(Array.isArray(sommeilData) ? sommeilData : []);
         setRepasEntries(Array.isArray(repasData) ? repasData : []);
         setActiviteEntries(Array.isArray(activiteData) ? activiteData : []);
-        
-        console.log('Données chargées:', {
-          sommeil: sommeilData,
-          repas: repasData,
-          activite: activiteData
-        });
-      } catch (error) {
-        console.error('Erreur lors du chargement des données utilisateur:', error);
-        authService.logout();
-        navigate('/login');
       }
-    } else {
-      navigate('/login');
-    }
+
+      setLoading(false);
+    })();
+
+    return () => { mounted = false; };
   }, [navigate]);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <>
+        <Navbar />
+        <div className="container mx-auto px-4 py-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Historique</CardTitle>
+              <CardDescription>{loading ? 'Chargement des données…' : 'Veuillez vous connecter pour voir votre historique.'}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>{loading ? 'Veuillez patienter' : 'Redirection vers la connexion…'}</span>
+              </div>
+              {!loading && (
+                <div className="mt-4">
+                  <Button variant="default" onClick={() => navigate('/login')}>Se connecter</Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
 
   const formatDate = (dateString: string) => {
     try {
@@ -249,16 +283,11 @@ export default function History() {
       } else if (type === 'activite') {
         setActiviteEntries(prev => prev.filter(entry => entry.id !== id));
       }
-
-      toast({
-        title: "Suppression réussie",
-        description: `L'entrée ${type} a été supprimée`,
-      });
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer l'entrée",
-        variant: "destructive",
+        title: 'Erreur',
+        description: 'Impossible de supprimer l\'entrée',
+        variant: 'destructive'
       });
     }
   };

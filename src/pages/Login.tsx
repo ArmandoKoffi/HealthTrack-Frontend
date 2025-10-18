@@ -16,6 +16,15 @@ export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const preventPasteCopy = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    toast({
+      title: "Action non autorisée",
+      description: "Pour des raisons de sécurité, saisissez votre mot de passe manuellement.",
+      variant: "destructive",
+    });
+  };
+
   // Vérifier s'il y a un email dans l'URL (après inscription)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -122,6 +131,8 @@ export default function Login() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onPaste={preventPasteCopy}
+                    onCopy={preventPasteCopy}
                     className="pl-10 pr-10"
                     required
                   />

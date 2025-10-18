@@ -15,6 +15,16 @@ interface ChangePasswordModalProps {
 
 export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
   const { toast } = useToast();
+
+  const preventPasteCopy = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    toast({
+      title: "Action non autorisée",
+      description: "Pour des raisons de sécurité, saisissez votre mot de passe manuellement.",
+      variant: "destructive",
+    });
+  };
+
   const [isLoading, setIsLoading] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -132,6 +142,8 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                 type={showCurrentPassword ? "text" : "password"}
                 value={formData.currentPassword}
                 onChange={handleChange}
+                onPaste={preventPasteCopy}
+                onCopy={preventPasteCopy}
                 required
                 className="pl-10 pr-10"
                 placeholder="Entrez votre mot de passe actuel"
@@ -163,6 +175,8 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                 type={showNewPassword ? "text" : "password"}
                 value={formData.newPassword}
                 onChange={handleChange}
+                onPaste={preventPasteCopy}
+                onCopy={preventPasteCopy}
                 required
                 minLength={8}
                 className="pl-10 pr-10"
@@ -199,6 +213,8 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                 type={showConfirmPassword ? "text" : "password"}
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                onPaste={preventPasteCopy}
+                onCopy={preventPasteCopy}
                 required
                 minLength={8}
                 className="pl-10 pr-10"

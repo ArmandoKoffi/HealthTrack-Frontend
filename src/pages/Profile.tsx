@@ -19,8 +19,10 @@ import {
   Ruler,
   Target,
   Shield,
-  Loader2
+  Loader2,
+  Info
 } from 'lucide-react';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 export default function Profile() {
   const { toast } = useToast();
@@ -72,6 +74,8 @@ export default function Profile() {
 
   const isActiveValue = user?.isActive ?? true;
   const lastLoginDisplay = formatLastLogin(user?.lastLogin);
+  const roleLabel = user?.role === 'admin' ? 'Administrateur' : 'Utilisateur';
+  const emailVerifiedValue = !!user?.emailVerified;
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -514,6 +518,56 @@ export default function Profile() {
                     Changer le mot de passe
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Section Compte */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center">
+                  <User className="h-5 w-5 mr-2 text-primary" />
+                  Compte
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TooltipProvider>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>Rôle</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center">
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Le rôle détermine vos permissions dans l'application.
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <span className="text-sm font-medium">{roleLabel}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>Email vérifié</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center">
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Un email vérifié renforce la sécurité et facilite la récupération.
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <span className={`text-sm font-medium ${emailVerifiedValue ? 'text-success' : 'text-destructive'}`}>
+                        {emailVerifiedValue ? 'Vérifié' : 'Non vérifié'}
+                      </span>
+                    </div>
+                  </div>
+                </TooltipProvider>
               </CardContent>
             </Card>
 

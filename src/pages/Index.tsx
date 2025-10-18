@@ -19,24 +19,26 @@ const Index = () => {
     <div className="min-h-screen gradient-wellness">
       {/* En-tête */}
       <header className="container mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-soft">
               <span className="text-2xl">🩺</span>
             </div>
             <h1 className="text-2xl font-bold text-foreground">HealthTrack</h1>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
             <Button 
+              size="sm"
               variant="outline" 
               onClick={() => navigate('/login')}
-              className="w-full sm:w-auto"
+              className="px-3"
             >
               Connexion
             </Button>
             <Button 
+              size="sm"
               onClick={() => navigate('/register')} 
-              className="gradient-primary text-white w-full sm:w-auto"
+              className="gradient-primary text-white px-3"
             >
               Créer un compte
             </Button>

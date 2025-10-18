@@ -34,6 +34,16 @@ export default function ResetPassword() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const preventPasteCopy = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    toast({
+      title: "Action non autorisée",
+      description: "Pour des raisons de sécurité, saisissez votre mot de passe manuellement.",
+      variant: "destructive",
+    });
+  };
+
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
 
@@ -349,6 +359,8 @@ export default function ResetPassword() {
                     placeholder="••••••••"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    onPaste={preventPasteCopy}
+                    onCopy={preventPasteCopy}
                     className="pl-10 pr-10"
                     required
                     minLength={8}
@@ -380,6 +392,8 @@ export default function ResetPassword() {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    onPaste={preventPasteCopy}
+                    onCopy={preventPasteCopy}
                     className={`pl-10 pr-10 ${confirmPassword && newPassword !== confirmPassword ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     required
                   />

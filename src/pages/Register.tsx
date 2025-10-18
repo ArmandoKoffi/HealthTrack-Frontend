@@ -18,13 +18,23 @@ export default function Register() {
     prenom: '',
     dateNaissance: '',
     poids: '',
-    taille: ''
+    taille: '',
+    objectifPoids: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const preventPasteCopy = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    toast({
+      title: "Action non autorisée",
+      description: "Pour des raisons de sécurité, saisissez votre mot de passe manuellement.",
+      variant: "destructive",
+    });
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -85,6 +95,7 @@ export default function Register() {
         dateNaissance: formData.dateNaissance,
         poids: formData.poids ? parseFloat(formData.poids) : undefined,
         taille: formData.taille ? parseFloat(formData.taille) : undefined,
+        objectifPoids: formData.objectifPoids ? parseFloat(formData.objectifPoids) : undefined,
       });
       
       if (result.success) {
@@ -215,6 +226,8 @@ export default function Register() {
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={handleChange}
+                      onPaste={preventPasteCopy}
+                      onCopy={preventPasteCopy}
                       className="pl-10 pr-10"
                       required
                     />
@@ -240,6 +253,8 @@ export default function Register() {
                       placeholder="••••••••"
                       value={formData.confirmPassword}
                       onChange={handleChange}
+                      onPaste={preventPasteCopy}
+                      onCopy={preventPasteCopy}
                       className="pl-10 pr-10"
                       required
                     />
@@ -305,6 +320,25 @@ export default function Register() {
                         type="number"
                         placeholder="170"
                         value={formData.taille}
+                        onChange={handleChange}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="objectifPoids">Objectif poids (kg) - optionnel</Label>
+                    <div className="relative">
+                      <Scale className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="objectifPoids"
+                        name="objectifPoids"
+                        type="number"
+                        step="0.1"
+                        placeholder="65"
+                        value={formData.objectifPoids}
                         onChange={handleChange}
                         className="pl-10"
                       />

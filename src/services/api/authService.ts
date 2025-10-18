@@ -39,6 +39,7 @@ export interface RegisterData {
   dateNaissance: string;
   poids?: number;
   taille?: number;
+  objectifPoids?: number;
 }
 
 export interface ForgotPasswordData {
@@ -215,7 +216,6 @@ export const authService = {
    * Déconnexion (suppression du token côté client)
    */
   logout(): void {
-    // Suppression du token du localStorage
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
   },
