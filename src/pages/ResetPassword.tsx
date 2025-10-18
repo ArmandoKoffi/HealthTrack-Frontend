@@ -21,6 +21,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { authService, profileService } from "@/services/api";
+import { PasswordStrength } from "@/components/PasswordStrength";
 
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");
@@ -335,9 +336,6 @@ export default function ResetPassword() {
             <CardDescription>
               Créez un nouveau mot de passe sécurisé pour votre compte
             </CardDescription>
-            <p className="text-xs text-muted-foreground mt-1">
-              Au moins 8 caractères, majuscule, minuscule et chiffre.
-            </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -367,6 +365,7 @@ export default function ResetPassword() {
                     )}
                   </button>
                 </div>
+                <PasswordStrength password={newPassword} />
               </div>
 
               <div className="space-y-2">
@@ -381,7 +380,7 @@ export default function ResetPassword() {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10"
+                    className={`pl-10 pr-10 ${confirmPassword && newPassword !== confirmPassword ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                     required
                   />
                   <button
@@ -396,6 +395,9 @@ export default function ResetPassword() {
                     )}
                   </button>
                 </div>
+                {confirmPassword && newPassword !== confirmPassword && (
+                  <p className="text-xs text-destructive">Les mots de passe ne correspondent pas</p>
+                )}
               </div>
 
               <Button
