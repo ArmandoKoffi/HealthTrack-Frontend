@@ -179,9 +179,14 @@ export default function Profile() {
   };
 
   const calculateIMC = () => {
-    if (user.poids && user.taille) {
-      const tailleM = user.taille / 100;
-      return (user.poids / (tailleM * tailleM)).toFixed(1);
+    const poidsFromForm = formData.poids ? parseFloat(formData.poids) : undefined;
+    const tailleFromForm = formData.taille ? parseFloat(formData.taille) : undefined;
+    const poids = (isEditing && poidsFromForm !== undefined && !Number.isNaN(poidsFromForm)) ? poidsFromForm : user.poids;
+    const taille = (isEditing && tailleFromForm !== undefined && !Number.isNaN(tailleFromForm)) ? tailleFromForm : user.taille;
+
+    if (poids && taille && poids > 0 && taille > 0) {
+      const tailleM = taille / 100;
+      return (poids / (tailleM * tailleM)).toFixed(1);
     }
     return null;
   };
@@ -195,6 +200,15 @@ export default function Profile() {
 
   const imc = calculateIMC();
   const imcCategorie = imc ? getIMCCategorie(parseFloat(imc)) : null;
+
+  // Valeurs live pour le bloc Objectif de poids
+  const poidsFromForm = formData.poids ? parseFloat(formData.poids) : undefined;
+  const objPoidsFromForm = formData.objectifPoids ? parseFloat(formData.objectifPoids) : undefined;
+  const poidsDisplay = (isEditing && poidsFromForm !== undefined && !Number.isNaN(poidsFromForm)) ? poidsFromForm : user.poids;
+  const objectifPoidsDisplay = (isEditing && objPoidsFromForm !== undefined && !Number.isNaN(objPoidsFromForm)) ? objPoidsFromForm : user.objectifPoids;
+  const showObjectifCard = !!(poidsDisplay && poidsDisplay > 0 && objectifPoidsDisplay && objectifPoidsDisplay > 0);
+  const restantValue = showObjectifCard ? Math.abs(poidsDisplay! - objectifPoidsDisplay!).toFixed(1) : null;
+  const restantClass = showObjectifCard ? (poidsDisplay! > objectifPoidsDisplay! ? 'text-warning' : 'text-success') : '';
 
   return (
     <div className="min-h-screen bg-background">
@@ -442,7 +456,7 @@ export default function Profile() {
             )}
 
             {/* Objectif de poids */}
-            {user.objectifPoids && user.poids && (
+            {showObjectifCard && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center">
@@ -454,18 +468,16 @@ export default function Profile() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Actuel</span>
-                      <span className="font-medium">{user.poids} kg</span>
+                      <span className="font-medium">{poidsDisplay} kg</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Objectif</span>
-                      <span className="font-medium">{user.objectifPoids} kg</span>
+                      <span className="font-medium">{objectifPoidsDisplay} kg</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Restant</span>
-                      <span className={`font-medium ${
-                        user.poids > user.objectifPoids ? 'text-warning' : 'text-success'
-                      }`}>
-                        {Math.abs(user.poids - user.objectifPoids).toFixed(1)} kg
+                      <span className={`font-medium ${restantClass}`}>
+                        {restantValue} kg
                       </span>
                     </div>
                   </div>
