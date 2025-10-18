@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { authService, profileService } from '@/services/api';
 import { Loader2, Eye, EyeOff, Lock } from 'lucide-react';
+import { PasswordStrength } from '@/components/PasswordStrength';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -184,6 +185,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
             <p className="text-xs text-muted-foreground">
               Minimum 8 caractères
             </p>
+            <PasswordStrength password={formData.newPassword} />
           </div>
 
           {/* Confirmation du nouveau mot de passe */}

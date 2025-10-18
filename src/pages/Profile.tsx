@@ -70,6 +70,8 @@ export default function Profile() {
 
   if (!user) return null;
 
+  const isActiveValue = user?.isActive ?? true;
+  const lastLoginDisplay = formatLastLogin(user?.lastLogin);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -497,11 +499,11 @@ export default function Profile() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Statut du compte</span>
-                    <span className="text-sm font-medium text-success">Actif</span>
+                    <span className={`text-sm font-medium ${isActiveValue ? 'text-success' : 'text-destructive'}`}>{isActiveValue ? 'Actif' : 'Désactivé'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Dernière connexion</span>
-                    <span className="text-sm font-medium">Aujourd'hui </span>
+                    <span className="text-sm font-medium">{lastLoginDisplay}</span>
                   </div>
                   <Separator />
                   <Button 
@@ -550,5 +552,23 @@ const formatDateForInput = (date: string | Date | undefined | null): string => {
     return d.toISOString().split('T')[0];
   } catch {
     return typeof date === 'string' ? (date.includes('T') ? date.split('T')[0] : date) : '';
+  }
+};
+
+const formatLastLogin = (lastLogin?: string | Date | null): string => {
+  if (!lastLogin) return '—';
+  try {
+    const d = typeof lastLogin === 'string' ? new Date(lastLogin) : lastLogin;
+    if (Number.isNaN(d.getTime())) return '—';
+    const now = new Date();
+    const sameDay = d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate();
+    if (sameDay) return "Aujourd'hui";
+    const datePart = d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timePart = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return `${datePart} à ${timePart}`;
+  } catch {
+    return '—';
   }
 };

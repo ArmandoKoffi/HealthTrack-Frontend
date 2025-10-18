@@ -10,6 +10,10 @@ export interface User {
   taille?: number;
   objectifPoids?: number;
   avatar?: string;
+  role?: string;
+  emailVerified?: boolean;
+  isActive?: boolean;
+  lastLogin?: string;
   createdAt?: string;
   updatedAt?: string;
 }
