@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { authService } from '@/services/api';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -16,22 +17,42 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!email) {
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: 'Veuillez saisir votre email.',
+      });
+      return;
+    }
+
+    // Validation email basique côté client
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      toast({
+        variant: 'destructive',
+        title: 'Email invalide',
+        description: 'Veuillez saisir une adresse email valide.',
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Simulation d'envoi d'email
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      const result = await authService.forgotPassword({ email });
       setEmailSent(true);
       toast({
-        title: "Email envoyé !",
-        description: "Un lien de réinitialisation a été envoyé à votre adresse email.",
+        title: 'Email envoyé !',
+        description: result.message || 'Un lien de réinitialisation vous a été envoyé.',
       });
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Une erreur est survenue lors de l'envoi de l'email.";
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'envoi de l'email.",
-        variant: "destructive",
+        title: 'Erreur',
+        description: message,
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);

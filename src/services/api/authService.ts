@@ -156,6 +156,32 @@ export const authService = {
   },
 
   /**
+   * Vérification de la validité d'un token de réinitialisation
+   */
+  async verifyResetToken(token: string): Promise<{ success: boolean; message: string; user?: { email: string } }> {
+    try {
+      const response = await fetch(`${apiConfig.baseURL}/auth/reset-password/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Lien de réinitialisation invalide ou expiré');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Erreur authService.verifyResetToken:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Vérification de la validité d'un token JWT
    */
   async verifyToken(token: string): Promise<{ success: boolean; user?: User }> {
