@@ -33,7 +33,7 @@ export default function Profile() {
     nom: user?.nom || '',
     prenom: user?.prenom || '',
     email: user?.email || '',
-    dateNaissance: user?.dateNaissance || '',
+    dateNaissance: formatDateForInput(user?.dateNaissance) || '',
     poids: user?.poids?.toString() || '',
     taille: user?.taille?.toString() || '',
     objectifPoids: user?.objectifPoids?.toString() || ''
@@ -54,7 +54,7 @@ export default function Profile() {
             nom: result.user.nom || '',
             prenom: result.user.prenom || '',
             email: result.user.email || '',
-            dateNaissance: result.user.dateNaissance || '',
+            dateNaissance: formatDateForInput(result.user.dateNaissance) || '',
             poids: result.user.poids?.toString() || '',
             taille: result.user.taille?.toString() || '',
             objectifPoids: result.user.objectifPoids?.toString() || ''
@@ -159,7 +159,7 @@ export default function Profile() {
       nom: user.nom,
       prenom: user.prenom,
       email: user.email,
-      dateNaissance: user.dateNaissance,
+      dateNaissance: formatDateForInput(user.dateNaissance),
       poids: user.poids?.toString() || '',
       taille: user.taille?.toString() || '',
       objectifPoids: user.objectifPoids?.toString() || ''
@@ -527,3 +527,16 @@ export default function Profile() {
     </div>
   );
 }
+
+const formatDateForInput = (date: string | Date | undefined | null): string => {
+  if (!date) return '';
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (Number.isNaN(d.getTime())) {
+      return typeof date === 'string' ? (date.includes('T') ? date.split('T')[0] : date) : '';
+    }
+    return d.toISOString().split('T')[0];
+  } catch {
+    return typeof date === 'string' ? (date.includes('T') ? date.split('T')[0] : date) : '';
+  }
+};
