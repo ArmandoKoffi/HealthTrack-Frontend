@@ -92,32 +92,7 @@ export default function History() {
     return () => { mounted = false; };
   }, [navigate]);
 
-  if (!user) {
-    return (
-      <>
-        <Navbar />
-        <div className="container mx-auto px-4 py-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Historique</CardTitle>
-              <CardDescription>{loading ? 'Chargement des données…' : 'Veuillez vous connecter pour voir votre historique.'}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>{loading ? 'Veuillez patienter' : 'Redirection vers la connexion…'}</span>
-              </div>
-              {!loading && (
-                <div className="mt-4">
-                  <Button variant="default" onClick={() => navigate('/login')}>Se connecter</Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    );
-  }
+  /* Fallback rendu conditionnel dans le JSX principal pour éviter les hooks conditionnels */
 
   const formatDate = (dateString: string) => {
     try {
@@ -299,8 +274,28 @@ export default function History() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {!user ? (
+        <div className="container mx-auto px-4 py-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Historique</CardTitle>
+              <CardDescription>{loading ? 'Chargement des données…' : 'Veuillez vous connecter pour voir votre historique.'}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>{loading ? 'Veuillez patienter' : 'Redirection vers la connexion…'}</span>
+              </div>
+              {!loading && (
+                <div className="mt-4">
+                  <Button variant="default" onClick={() => navigate('/login')}>Se connecter</Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* En-tête */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -663,6 +658,8 @@ export default function History() {
           </Card>
         )}
       </main>
+
+      )}
 
       {/* Popup de modification d'entrée */}
       <EditEntryModal 
