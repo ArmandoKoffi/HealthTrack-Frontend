@@ -214,9 +214,10 @@ export default function Profile() {
   const objectifPoidsDisplay = (isEditing && objPoidsFromForm !== undefined && !Number.isNaN(objPoidsFromForm)) ? objPoidsFromForm : user.objectifPoids;
   // Valeurs d'affichage pour la carte Objectif de poids
   const hasPoids = !!(poidsDisplay && poidsDisplay > 0);
-  const showObjectifCard = !!(objectifPoidsDisplay && objectifPoidsDisplay > 0);
-  const restantValue = hasPoids ? Math.abs(poidsDisplay! - objectifPoidsDisplay!).toFixed(1) : null;
-  const restantClass = hasPoids ? (poidsDisplay! > objectifPoidsDisplay! ? 'text-warning' : 'text-success') : '';
+  const hasObjectifPoids = !!(objectifPoidsDisplay && objectifPoidsDisplay > 0);
+  const showObjectifCard = true; // Toujours afficher la carte
+  const restantValue = (hasPoids && hasObjectifPoids) ? Math.abs(poidsDisplay! - objectifPoidsDisplay!).toFixed(1) : null;
+  const restantClass = (hasPoids && hasObjectifPoids) ? (poidsDisplay! > objectifPoidsDisplay! ? 'text-warning' : 'text-success') : '';
 
   return (
     <div className="min-h-screen bg-background">
@@ -480,14 +481,19 @@ export default function Profile() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Objectif</span>
-                      <span className="font-medium">{objectifPoidsDisplay} kg</span>
+                      <span className="font-medium">{hasObjectifPoids ? `${objectifPoidsDisplay} kg` : 'Non renseigné'}</span>
                     </div>
-                    {hasPoids && (
+                    {hasPoids && hasObjectifPoids && (
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Restant</span>
                         <span className={`font-medium ${restantClass}`}>
                           {restantValue} kg
                         </span>
+                      </div>
+                    )}
+                    {!hasObjectifPoids && (
+                      <div className="mt-2 text-xs text-muted-foreground text-center">
+                        Définissez un objectif de poids pour suivre votre progression
                       </div>
                     )}
                   </div>
