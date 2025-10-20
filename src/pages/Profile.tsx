@@ -355,9 +355,10 @@ export default function Profile() {
                         type="email"
                         value={formData.email}
                         onChange={handleChange}
-                        disabled={!isEditing}
-                        className="pl-10"
+                        disabled={true}
+                        className="pl-10 bg-gray-100"
                       />
+                      <div className="text-xs text-muted-foreground mt-1">L'adresse email ne peut pas être modifiée après l'inscription.</div>
                     </div>
                   </div>
 

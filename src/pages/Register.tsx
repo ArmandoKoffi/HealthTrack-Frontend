@@ -101,10 +101,21 @@ export default function Register() {
       if (result.success) {
         toast({
           title: "Compte créé avec succès !",
-          description: "Veuillez maintenant vous connecter avec votre nouveau compte",
+          description: "Veuillez vérifier votre email pour confirmer votre compte.",
+          duration: 6000,
         });
-        // Rediriger vers la page de connexion avec l'email pré-rempli
-        navigate(`/login?email=${encodeURIComponent(formData.email)}`);
+        // Ne pas rediriger, rester sur la page d'inscription
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          nom: '',
+          prenom: '',
+          dateNaissance: '',
+          poids: '',
+          taille: '',
+          objectifPoids: ''
+        });
       } else {
         toast({
           title: "Erreur lors de la création du compte",
