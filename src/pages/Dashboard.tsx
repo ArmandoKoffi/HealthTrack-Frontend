@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService, sommeilService, repasService, activiteService, objectifService } from '@/services/api';
+import { authService, sommeilService, repasService, activiteService, objectifService, handleAuthError } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -89,6 +89,12 @@ export default function Dashboard() {
       const token = authService.getToken() || '';
       
       try {
+        // Vérifier la présence du token
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
         // Récupérer les données utilisateur depuis localStorage
         const userData = localStorage.getItem('userData');
         if (!userData) {
@@ -109,7 +115,7 @@ export default function Dashboard() {
           sommeilService.getSommeils({ startDate: startDateStr, endDate: endDateStr }, token),
           repasService.getRepas({ startDate: startDateStr, endDate: endDateStr }, token),
           activiteService.getActivites({ startDate: startDateStr, endDate: endDateStr }, token),
-          objectifService.getObjectifs(token)
+          objectifService.getObjectifs({}, token)
         ]);
         
         // Vérifier les réponses et mettre à jour les états
@@ -126,6 +132,7 @@ export default function Dashboard() {
         setStats(calculatedStats);
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
+        handleAuthError(error);
         toast({
           title: "Erreur",
           description: "Impossible de charger les données. Veuillez réessayer.",
