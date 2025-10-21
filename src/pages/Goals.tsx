@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService, objectifService } from '@/services/api';
+import { authService, objectifService, handleAuthError } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
 import { User } from '@/types/health';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,6 +50,12 @@ export default function Goals() {
       const token = authService.getToken() || '';
       
       try {
+        // Si pas de token, rediriger vers la page de connexion
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
         // Récupérer les données utilisateur depuis localStorage
         const userData = localStorage.getItem('userData');
         if (!userData) {
@@ -61,7 +67,7 @@ export default function Goals() {
         setUser(parsedUser);
         
         // Charger les données réelles depuis l'API
-        const result = await objectifService.getObjectifs(token);
+        const result = await objectifService.getObjectifs({}, token);
         
         if (result.success && result.data) {
           setObjectifs(Array.isArray(result.data) ? result.data : [result.data]);
@@ -74,6 +80,8 @@ export default function Goals() {
         }
       } catch (error) {
         console.error('Erreur lors du chargement des objectifs:', error);
+        // Gestion spécifique des erreurs d'authentification (401, token invalide/expiré)
+        handleAuthError(error);
         toast({
           title: "Erreur",
           description: "Impossible de charger les objectifs",
@@ -93,6 +101,10 @@ export default function Goals() {
     setIsLoading(true);
     try {
       const token = authService.getToken() || '';
+      if (!token) {
+        navigate('/login');
+        return;
+      }
       const nouvelObjectif = {
         type: formData.type,
         valeurCible: parseFloat(formData.valeurCible),
@@ -102,11 +114,12 @@ export default function Goals() {
         actif: true
       };
 
-      const result = await objectifService.create(nouvelObjectif, token);
+      // Correction: utiliser la bonne méthode du service
+      const result = await objectifService.createObjectif(nouvelObjectif, token);
       
       if (result.success && result.data) {
         // Ajouter le nouvel objectif à la liste
-        const newObjectif = result.data;
+        const newObjectif = result.data as ObjectifUtilisateur;
         setObjectifs([...objectifs, newObjectif]);
         setIsCreating(false);
         setFormData({ type: 'poids', valeurCible: '', dateFinSouhaitee: '' });
@@ -120,6 +133,7 @@ export default function Goals() {
       }
     } catch (error) {
       console.error("Erreur lors de la création de l'objectif:", error);
+      handleAuthError(error);
       toast({
         title: "Erreur",
         description: "Impossible de créer l'objectif",
