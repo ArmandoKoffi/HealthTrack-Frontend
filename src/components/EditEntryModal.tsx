@@ -50,13 +50,27 @@ export function EditEntryModal({ isOpen, onClose, entry, type, onSave }: EditEnt
     notes: ''
   });
 
+  // Fonction pour formater les dates pour les inputs HTML
+  const formatDateForInput = (date: string | Date | undefined | null): string => {
+    if (!date) return '';
+    try {
+      const d = typeof date === 'string' ? new Date(date) : date;
+      if (Number.isNaN(d.getTime())) {
+        return typeof date === 'string' ? (date.includes('T') ? date.split('T')[0] : date) : '';
+      }
+      return d.toISOString().split('T')[0];
+    } catch {
+      return typeof date === 'string' ? (date.includes('T') ? date.split('T')[0] : date) : '';
+    }
+  };
+
   // Initialiser les données quand l'entrée change
   useEffect(() => {
     if (entry) {
       if (type === 'sommeil') {
         const sleepEntry = entry as EntreeSommeil;
         setSommeilData({
-          date: sleepEntry.date,
+          date: formatDateForInput(sleepEntry.date),
           heureCoucher: sleepEntry.heureCoucher,
           heureReveil: sleepEntry.heureReveil,
           qualiteSommeil: sleepEntry.qualiteSommeil,
@@ -65,7 +79,7 @@ export function EditEntryModal({ isOpen, onClose, entry, type, onSave }: EditEnt
       } else if (type === 'repas') {
         const mealEntry = entry as EntreeRepas;
         setRepasData({
-          date: mealEntry.date,
+          date: formatDateForInput(mealEntry.date),
           typeRepas: mealEntry.typeRepas,
           aliments: mealEntry.aliments.join(', '),
           calories: mealEntry.calories?.toString() || '',
@@ -77,7 +91,7 @@ export function EditEntryModal({ isOpen, onClose, entry, type, onSave }: EditEnt
       } else if (type === 'activite') {
         const activityEntry = entry as EntreeActivite;
         setActiviteData({
-          date: activityEntry.date,
+          date: formatDateForInput(activityEntry.date),
           typeActivite: activityEntry.typeActivite,
           duree: activityEntry.duree.toString(),
           intensite: activityEntry.intensite,
