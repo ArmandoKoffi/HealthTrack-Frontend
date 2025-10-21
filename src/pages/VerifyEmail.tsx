@@ -22,11 +22,44 @@ export default function VerifyEmail() {
       return;
     }
 
-    // Redirection vers l'API backend pour la vérification
-    // Le backend gère la mise à jour et redirige ensuite vers /login?verified=true&email=...
-    const verifyUrl = `${apiConfig.baseURL}/auth/verify-email/${token}`;
-    window.location.href = verifyUrl;
-  }, [token]);
+    // Utiliser fetch au lieu de redirection directe pour éviter les problèmes CSP
+    const verifyEmail = async () => {
+      try {
+        const verifyUrl = `${apiConfig.baseURL}/auth/verify-email/${token}`;
+        const response = await fetch(verifyUrl, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Redirection manuelle vers la page de connexion avec les paramètres
+          navigate(`/login?verified=true&email=${encodeURIComponent(data.email || '')}`);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Échec de la vérification",
+            description: data.message || "Une erreur est survenue lors de la vérification de l'email.",
+          });
+          navigate('/login');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification:', error);
+        toast({
+          variant: "destructive",
+          title: "Erreur de connexion",
+          description: "Impossible de contacter le serveur. Veuillez réessayer plus tard.",
+        });
+        navigate('/login');
+      }
+    };
+
+    verifyEmail();
+  }, [token, navigate, toast]);
 
   if (!token) {
     return (
