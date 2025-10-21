@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { authService, sommeilService, repasService, activiteService } from '@/services/api';
+import { authService, sommeilService, repasService, activiteService, handleAuthError } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -131,6 +131,11 @@ export default function AddEntry() {
 
     try {
       const token = authService.getToken() || '';
+      if (!token) {
+        navigate('/login');
+        setIsLoading(false);
+        return;
+      }
       const entree = {
         date: sommeilData.date,
         heureCoucher: sommeilData.heureCoucher,
@@ -140,7 +145,7 @@ export default function AddEntry() {
         dureeSommeil: calculerDureeSommeil()
       };
 
-      const result = await sommeilService.create(entree, token);
+      const result = await sommeilService.createSommeil(entree, token);
       
       if (result.success) {
         toast({
@@ -153,6 +158,7 @@ export default function AddEntry() {
       }
     } catch (error) {
       console.error("Erreur lors de l'enregistrement du sommeil:", error);
+      handleAuthError(error);
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer les données",
@@ -169,6 +175,11 @@ export default function AddEntry() {
 
     try {
       const token = authService.getToken() || '';
+      if (!token) {
+        navigate('/login');
+        setIsLoading(false);
+        return;
+      }
       const entree = {
         date: repasData.date,
         typeRepas: repasData.typeRepas,
@@ -177,7 +188,7 @@ export default function AddEntry() {
         notes: repasData.notes
       };
 
-      const result = await repasService.create(entree, token);
+      const result = await repasService.createRepas(entree, token);
       
       if (result.success) {
         toast({
@@ -190,6 +201,7 @@ export default function AddEntry() {
       }
     } catch (error) {
       console.error("Erreur lors de l'enregistrement du repas:", error);
+      handleAuthError(error);
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer les données",
@@ -206,6 +218,11 @@ export default function AddEntry() {
 
     try {
       const token = authService.getToken() || '';
+      if (!token) {
+        navigate('/login');
+        setIsLoading(false);
+        return;
+      }
       const entree = {
         date: activiteData.date,
         typeActivite: activiteData.typeActivite,
@@ -214,7 +231,7 @@ export default function AddEntry() {
         notes: activiteData.notes
       };
 
-      const result = await activiteService.create(entree, token);
+      const result = await activiteService.createActivite(entree, token);
       
       if (result.success) {
         toast({
@@ -226,6 +243,7 @@ export default function AddEntry() {
         throw new Error(result.message || "Erreur lors de l'enregistrement");
       }
     } catch (error) {
+      handleAuthError(error);
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer les données",
