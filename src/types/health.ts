@@ -74,7 +74,7 @@ export interface StatistiquesJournalieres {
 export interface ObjectifUtilisateur {
   id: string;
   userId: string;
-  type: 'poids' | 'sommeil' | 'activite' | 'calories';
+  type: 'poids' | 'sommeil' | 'activite' | 'calories' | 'eau';
   valeurCible: number;
   valeurActuelle: number;
   dateDebut: string;
