@@ -23,6 +23,19 @@ import {
 } from 'lucide-react';
 import { ObjectifUtilisateur } from '@/types/health';
 
+// Helper pour formater une date en yyyy-MM-dd pour les inputs
+const formatDateForInput = (dateStr: string | Date | undefined): string => {
+  if (!dateStr) return '';
+  if (typeof dateStr === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    const tIdx = dateStr.indexOf('T');
+    if (tIdx > 0) return dateStr.slice(0, tIdx);
+  }
+  const d = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+  if (isNaN(d.getTime())) return '';
+  return d.toISOString().split('T')[0];
+};
+
 export default function Goals() {
   const [objectifs, setObjectifs] = useState<ObjectifUtilisateur[]>([]);
   const [isCreating, setIsCreating] = useState(false);
@@ -152,7 +165,7 @@ export default function Goals() {
         setFormData({
           type: objectif.type,
           valeurCible: objectif.valeurCible.toString(),
-          dateFinSouhaitee: objectif.dateFinSouhaitee
+          dateFinSouhaitee: formatDateForInput(objectif.dateFinSouhaitee)
         });
         setIsCreating(true);
       }
