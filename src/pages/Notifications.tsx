@@ -118,24 +118,23 @@ export default function Notifications() {
 
   const marquerCommeLue = async (notificationId: string) => {
     try {
--     await dataService.marquerNotificationLue(notificationId);
-+     const token = authService.getToken();
-+     if (!token) {
-+       authService.logout();
-+       navigate('/login');
-+       return;
-+     }
-+     const res = await notificationsService.markAsRead(notificationId, token);
-+     if (res && res.success && res.data && typeof res.data === 'object') {
-+       const updated = res.data as Notification;
-+       setNotifications(notifications.map(n => 
-+         n.id === notificationId ? { ...n, lu: true, date: updated.date } : n
-+       ));
-+     } else {
-+       setNotifications(notifications.map(n => 
-+         n.id === notificationId ? { ...n, lu: true } : n
-+       ));
-+     }
+      const token = authService.getToken();
+      if (!token) {
+        authService.logout();
+        navigate('/login');
+        return;
+      }
+      const res = await notificationsService.markAsRead(notificationId, token);
+      if (res && res.success && res.data && typeof res.data === 'object') {
+        const updated = res.data as Notification;
+        setNotifications(notifications.map(n => 
+          n.id === notificationId ? { ...n, lu: true, date: updated.date } : n
+        ));
+      } else {
+        setNotifications(notifications.map(n => 
+          n.id === notificationId ? { ...n, lu: true } : n
+        ));
+      }
       toast({
         title: "Notification marquée comme lue",
         description: "La notification a été mise à jour",
@@ -151,19 +150,13 @@ export default function Notifications() {
 
   const marquerToutCommeLu = async () => {
     try {
--     // Simuler le marquage de toutes les notifications
--     await Promise.all(
--       notifications
--         .filter(n => !n.lu)
--         .map(n => dataService.marquerNotificationLue(n.id))
--     );
-+     const token = authService.getToken();
-+     if (!token) {
-+       authService.logout();
-+       navigate('/login');
-+       return;
-+     }
-+     await notificationsService.markAllAsRead(token);
+      const token = authService.getToken();
+      if (!token) {
+        authService.logout();
+        navigate('/login');
+        return;
+      }
+      await notificationsService.markAllAsRead(token);
       
       setNotifications(notifications.map(n => ({ ...n, lu: true })));
       toast({
