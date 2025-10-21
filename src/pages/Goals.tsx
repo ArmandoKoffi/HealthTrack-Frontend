@@ -91,7 +91,7 @@ export default function Goals() {
         setIsLoading(false);
       }
     };
-    
+
     fetchData();
   }, [navigate, toast]);
 
@@ -171,27 +171,34 @@ export default function Goals() {
 
   const handleUpdate = async () => {
     try {
-      const updatedObjectifs = objectifs.map(obj => 
-        obj.id === editingId 
-          ? {
-              ...obj,
-              type: formData.type,
-              valeurCible: parseFloat(formData.valeurCible),
-              dateFinSouhaitee: formData.dateFinSouhaitee
-            }
-          : obj
-      );
-      
-      setObjectifs(updatedObjectifs);
-      setIsCreating(false);
-      setEditingId(null);
-      setFormData({ type: 'poids', valeurCible: '', dateFinSouhaitee: '' });
-      
-      toast({
-        title: "Objectif mis à jour !",
-        description: "Vos modifications ont été sauvegardées",
-      });
+      const token = authService.getToken() || '';
+      if (!token || !editingId) {
+        navigate('/login');
+        return;
+      }
+
+      const updates = {
+        type: formData.type,
+        valeurCible: parseFloat(formData.valeurCible),
+        dateFinSouhaitee: formData.dateFinSouhaitee,
+      };
+
+      const result = await objectifService.updateObjectif(editingId, updates, token);
+      if (result.success && result.data) {
+        const updated = result.data as ObjectifUtilisateur;
+        setObjectifs(prev => prev.map(obj => obj.id === updated.id ? updated : obj));
+        setIsCreating(false);
+        setEditingId(null);
+        setFormData({ type: 'poids', valeurCible: '', dateFinSouhaitee: '' });
+        toast({
+          title: "Objectif mis à jour !",
+          description: "Vos modifications ont été sauvegardées",
+        });
+      } else {
+        throw new Error(result.message || "Erreur lors de la mise à jour de l'objectif");
+      }
     } catch (error) {
+      handleAuthError(error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour l'objectif",
@@ -202,12 +209,24 @@ export default function Goals() {
 
   const handleDelete = async (objectifId: string) => {
     try {
-      setObjectifs(objectifs.filter(obj => obj.id !== objectifId));
-      toast({
-        title: "Objectif supprimé",
-        description: "L'objectif a été retiré de votre liste",
-      });
+      const token = authService.getToken() || '';
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const result = await objectifService.deleteObjectif(objectifId, token);
+      if (result.success) {
+        setObjectifs(objectifs.filter(obj => obj.id !== objectifId));
+        toast({
+          title: "Objectif supprimé",
+          description: "L'objectif a été retiré de votre liste",
+        });
+      } else {
+        throw new Error(result.message || "Erreur lors de la suppression de l'objectif");
+      }
     } catch (error) {
+      handleAuthError(error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer l'objectif",

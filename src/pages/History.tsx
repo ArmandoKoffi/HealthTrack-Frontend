@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { authService, profileService, sommeilService, repasService, activiteService } from '@/services/api';
+import { authService, profileService, sommeilService, repasService, activiteService, handleAuthError } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -254,38 +254,125 @@ export default function History() {
     setEditModalOpen(true);
   };
 
-  const handleSaveEntry = (updatedEntry: EntreeSommeil | EntreeRepas | EntreeActivite) => {
-    if (selectedEntryType === 'sommeil') {
-      setSommeilEntries(prev => prev.map(entry => 
-        entry.id === updatedEntry.id ? updatedEntry as EntreeSommeil : entry
-      ));
-    } else if (selectedEntryType === 'repas') {
-      setRepasEntries(prev => prev.map(entry => 
-        entry.id === updatedEntry.id ? updatedEntry as EntreeRepas : entry
-      ));
-    } else if (selectedEntryType === 'activite') {
-      setActiviteEntries(prev => prev.map(entry => 
-        entry.id === updatedEntry.id ? updatedEntry as EntreeActivite : entry
-      ));
+  const handleSaveEntry = async (updatedEntry: EntreeSommeil | EntreeRepas | EntreeActivite) => {
+    try {
+      const token = authService.getToken();
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      if (selectedEntryType === 'sommeil') {
+        const e = updatedEntry as EntreeSommeil;
+        const updates = {
+          date: e.date,
+          heureCoucher: e.heureCoucher,
+          heureReveil: e.heureReveil,
+          dureeSommeil: e.dureeSommeil,
+          qualiteSommeil: e.qualiteSommeil,
+          notes: e.notes
+        };
+        const res = await sommeilService.updateSommeil(e.id, updates, token);
+        if (res.success && res.data) {
+          const saved = res.data as EntreeSommeil;
+          setSommeilEntries(prev => prev.map(entry => entry.id === saved.id ? saved : entry));
+        } else {
+          throw new Error(res.message || 'Mise à jour du sommeil échouée');
+        }
+      } else if (selectedEntryType === 'repas') {
+        const e = updatedEntry as EntreeRepas;
+        const updates = {
+          date: e.date,
+          typeRepas: e.typeRepas,
+          aliments: e.aliments,
+          calories: e.calories ?? undefined,
+          proteines: e.proteines ?? undefined,
+          glucides: e.glucides ?? undefined,
+          lipides: e.lipides ?? undefined,
+          notes: e.notes
+        };
+        const res = await repasService.updateRepas(e.id, updates, token);
+        if (res.success && res.data) {
+          const saved = res.data as EntreeRepas;
+          setRepasEntries(prev => prev.map(entry => entry.id === saved.id ? saved : entry));
+        } else {
+          throw new Error(res.message || 'Mise à jour du repas échouée');
+        }
+      } else if (selectedEntryType === 'activite') {
+        const e = updatedEntry as EntreeActivite;
+        const updates = {
+          date: e.date,
+          typeActivite: e.typeActivite,
+          duree: e.duree,
+          intensite: e.intensite,
+          caloriesBrulees: e.caloriesBrulees ?? undefined,
+          notes: e.notes
+        };
+        const res = await activiteService.updateActivite(e.id, updates, token);
+        if (res.success && res.data) {
+          const saved = res.data as EntreeActivite;
+          setActiviteEntries(prev => prev.map(entry => entry.id === saved.id ? saved : entry));
+        } else {
+          throw new Error(res.message || "Mise à jour de l'activité échouée");
+        }
+      }
+
+      toast({
+        title: 'Succès',
+        description: "L'entrée a été modifiée avec succès",
+      });
+      setEditModalOpen(false);
+      setSelectedEntry(null);
+    } catch (error) {
+      handleAuthError(error);
+      toast({
+        title: 'Erreur',
+        description: "Impossible de modifier l'entrée",
+        variant: 'destructive'
+      });
     }
   };
 
   const handleDelete = async (id: string, type: string) => {
     try {
-      // Simuler la suppression
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      if (type === 'sommeil') {
-        setSommeilEntries(prev => prev.filter(entry => entry.id !== id));
-      } else if (type === 'repas') {
-        setRepasEntries(prev => prev.filter(entry => entry.id !== id));
-      } else if (type === 'activite') {
-        setActiviteEntries(prev => prev.filter(entry => entry.id !== id));
+      const token = authService.getToken();
+      if (!token) {
+        navigate('/login');
+        return;
       }
+
+      if (type === 'sommeil') {
+        const res = await sommeilService.deleteSommeil(id, token);
+        if (res.success) {
+          setSommeilEntries(prev => prev.filter(entry => entry.id !== id));
+        } else {
+          throw new Error(res.message || 'Suppression du sommeil échouée');
+        }
+      } else if (type === 'repas') {
+        const res = await repasService.deleteRepas(id, token);
+        if (res.success) {
+          setRepasEntries(prev => prev.filter(entry => entry.id !== id));
+        } else {
+          throw new Error(res.message || 'Suppression du repas échouée');
+        }
+      } else if (type === 'activite') {
+        const res = await activiteService.deleteActivite(id, token);
+        if (res.success) {
+          setActiviteEntries(prev => prev.filter(entry => entry.id !== id));
+        } else {
+          throw new Error(res.message || "Suppression de l'activité échouée");
+        }
+      }
+
+      toast({
+        title: 'Entrée supprimée',
+        description: "L'entrée a été retirée de votre historique",
+      });
     } catch (error) {
+      handleAuthError(error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer l\'entrée',
+        description: "Impossible de supprimer l'entrée",
         variant: 'destructive'
       });
     }
