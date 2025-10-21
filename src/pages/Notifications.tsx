@@ -1,49 +1,109 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '@/services/api';
-import { MockDataService } from '@/services/mockData';
+import { authService, notificationsService } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
-import { User } from '@/types/health';
+import { User, Notification } from '@/types/health';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Bell, 
-  CheckCircle, 
-  Trophy, 
-  Target, 
+import {
+  Bell,
+  CheckCircle,
+  Trophy,
+  Target,
   Lightbulb,
   Clock,
   Mail,
-  Check
+  Check,
 } from 'lucide-react';
-import { Notification } from '@/types/health';
+import { realtimeService, RealtimeEvent } from '@/services/api/realtimeService';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
-  const dataService = MockDataService.getInstance();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est authentifié
     if (!authService.isAuthenticated()) {
       navigate('/login');
       return;
     }
 
-    // Récupérer les données utilisateur depuis localStorage
     const userData = localStorage.getItem('userData');
     if (userData) {
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
-        
-        // Charger les données mockées
-        const notificationsData = dataService.getNotifications(parsedUser.id);
-        setNotifications(notificationsData);
+
+        const token = authService.getToken();
+        if (!token) {
+          authService.logout();
+          navigate('/login');
+          return;
+        }
+
+        // Charger les notifications initiales
+        (async () => {
+          try {
+            const res = await notificationsService.getNotifications({}, token);
+            if (res && res.success && Array.isArray(res.data)) {
+              setNotifications(res.data as Notification[]);
+            } else {
+              setNotifications([]);
+            }
+          } catch (error) {
+            console.error('Erreur lors du chargement des notifications:', error);
+            toast({
+              title: 'Erreur',
+              description: 'Impossible de charger les notifications',
+              variant: 'destructive',
+            });
+          }
+        })();
+
+        // Connexion SSE et souscription aux notifications en temps réel
+        try {
+          realtimeService.connect(token);
+        } catch (e) {
+          console.warn('Connexion SSE non initialisée:', e);
+        }
+
+        const onRealtimeNotification = (event: RealtimeEvent) => {
+          if (event.type !== 'notification') return;
+          const data: any = event.data || {};
+
+          // Afficher un toast selon la notification reçue
+          const toastTitle = data.title || data.titre || 'Notification';
+          const toastMessage = data.message || '';
+          const toastVariant = data.type === 'error' ? 'destructive' : undefined;
+          if (toastTitle || toastMessage) {
+            toast({ title: toastTitle, description: toastMessage, variant: toastVariant });
+          }
+
+          // Si la notification ressemble à une notification persistée, l'ajouter à la liste
+          const allowedTypes = ['rappel', 'felicitations', 'objectif', 'conseil'];
+          if (data && typeof data === 'object' && (data.titre || data.title) && data.message && allowedTypes.includes(data.type)) {
+            const newNotif: Notification = {
+              id: String(data.id || Date.now()),
+              userId: String(parsedUser?.id || parsedUser?._id || ''),
+              titre: data.titre || data.title,
+              message: data.message,
+              type: data.type,
+              date: data.date || new Date().toISOString(),
+              lu: false,
+            };
+            setNotifications((prev) => [newNotif, ...prev]);
+          }
+        };
+
+        realtimeService.addEventListener('notification', onRealtimeNotification);
+
+        return () => {
+          realtimeService.removeEventListener('notification', onRealtimeNotification);
+          realtimeService.disconnect();
+        };
       } catch (error) {
         console.error('Erreur lors du chargement des données utilisateur:', error);
         authService.logout();
@@ -58,10 +118,24 @@ export default function Notifications() {
 
   const marquerCommeLue = async (notificationId: string) => {
     try {
-      await dataService.marquerNotificationLue(notificationId);
-      setNotifications(notifications.map(n => 
-        n.id === notificationId ? { ...n, lu: true } : n
-      ));
+-     await dataService.marquerNotificationLue(notificationId);
++     const token = authService.getToken();
++     if (!token) {
++       authService.logout();
++       navigate('/login');
++       return;
++     }
++     const res = await notificationsService.markAsRead(notificationId, token);
++     if (res && res.success && res.data && typeof res.data === 'object') {
++       const updated = res.data as Notification;
++       setNotifications(notifications.map(n => 
++         n.id === notificationId ? { ...n, lu: true, date: updated.date } : n
++       ));
++     } else {
++       setNotifications(notifications.map(n => 
++         n.id === notificationId ? { ...n, lu: true } : n
++       ));
++     }
       toast({
         title: "Notification marquée comme lue",
         description: "La notification a été mise à jour",
@@ -77,12 +151,19 @@ export default function Notifications() {
 
   const marquerToutCommeLu = async () => {
     try {
-      // Simuler le marquage de toutes les notifications
-      await Promise.all(
-        notifications
-          .filter(n => !n.lu)
-          .map(n => dataService.marquerNotificationLue(n.id))
-      );
+-     // Simuler le marquage de toutes les notifications
+-     await Promise.all(
+-       notifications
+-         .filter(n => !n.lu)
+-         .map(n => dataService.marquerNotificationLue(n.id))
+-     );
++     const token = authService.getToken();
++     if (!token) {
++       authService.logout();
++       navigate('/login');
++       return;
++     }
++     await notificationsService.markAllAsRead(token);
       
       setNotifications(notifications.map(n => ({ ...n, lu: true })));
       toast({
