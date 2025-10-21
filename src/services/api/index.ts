@@ -9,6 +9,7 @@ import { sommeilService } from './sommeilService';
 import { repasService } from './repasService';
 import { activiteService } from './activiteService';
 import { objectifService } from './objectifService';
+import { notificationsService } from './notificationsService';
 import { apiConfig, getAuthHeaders, validateResponse, handleApiError } from './config';
 
 // Ré-export des types et services
@@ -33,6 +34,7 @@ export { sommeilService } from './sommeilService';
 export { repasService } from './repasService';
 export { activiteService } from './activiteService';
 export { objectifService } from './objectifService';
+export { notificationsService } from './notificationsService';
 
 /**
  * Fonction utilitaire pour initialiser l'authentification
