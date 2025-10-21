@@ -193,7 +193,6 @@ if (token) {
     const errors = profileService.validateProfileUpdate({
       nom: 'NouveauNom',
       prenom: 'NouveauPrenom',
-      email: 'nouvel@email.com',
       poids: 72.5
     });
     
@@ -205,7 +204,6 @@ if (token) {
     const result = await profileService.updateProfile({
       nom: 'NouveauNom',
       prenom: 'NouveauPrenom',
-      email: 'nouvel@email.com',
       poids: 72.5
     }, token);
     

@@ -20,6 +20,7 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Tutorial from "./components/Tutorial";
 import { TutorialProvider, useTutorialContext } from "./contexts/TutorialContext";
+import VerifyEmail from "./pages/VerifyEmail";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const AppContent = () => {
             <Route path="/objectifs" element={<Goals />} />
             <Route path="/parametres" element={<Settings />} />
             <Route path="/rapports" element={<Reports />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

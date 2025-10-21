@@ -123,7 +123,6 @@ export default function Profile() {
       const updates = {
         nom: formData.nom,
         prenom: formData.prenom,
-        email: formData.email,
         dateNaissance: formData.dateNaissance,
         poids: formData.poids ? parseFloat(formData.poids) : undefined,
         taille: formData.taille ? parseFloat(formData.taille) : undefined,

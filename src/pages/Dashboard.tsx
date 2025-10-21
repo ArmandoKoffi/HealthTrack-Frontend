@@ -201,7 +201,7 @@ export default function Dashboard() {
                 Enregistrez vos données quotidiennes
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <Link to="/ajouter?type=sommeil">
                 <Button variant="outline" className="w-full justify-start">
                   <Moon className="mr-2 h-4 w-4" />
