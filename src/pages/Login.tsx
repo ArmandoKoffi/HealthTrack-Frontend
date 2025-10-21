@@ -25,14 +25,24 @@ export default function Login() {
     });
   };
 
-  // Vérifier s'il y a un email dans l'URL (après inscription)
+  // Vérifier s'il y a un email dans l'URL (après inscription) ou si l'email a été vérifié
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const emailFromUrl = urlParams.get('email');
+    const verified = urlParams.get('verified');
+    
     if (emailFromUrl) {
       setEmail(emailFromUrl);
     }
-  }, []);
+    
+    if (verified === 'true') {
+      toast({
+        title: "Email vérifié avec succès !",
+        description: "Votre compte est maintenant activé. Vous pouvez vous connecter.",
+        variant: "default",
+      });
+    }
+  }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
