@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '@/services/api';
-import { MockDataService } from '@/services/mockData';
+import { authService, sommeilService, repasService, activiteService } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
-import { User } from '@/types/health';
+import { User, StatistiquesJournalieres, EntreeSommeil, EntreeRepas, EntreeActivite } from '@/types/health';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +38,6 @@ import {
   Area,
   AreaChart
 } from 'recharts';
-import { StatistiquesJournalieres } from '@/types/health';
 
 export default function Reports() {
   const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
@@ -48,7 +46,6 @@ export default function Reports() {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   
-  const dataService = MockDataService.getInstance();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -65,9 +62,89 @@ export default function Reports() {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         
-        // Charger les données mockées
-        const statsData = dataService.getStatistiquesJournalieres(parsedUser.id);
-        setStats(statsData);
+        // Charger les données réelles depuis les APIs selon la période
+        const fetchRealStats = async () => {
+          const token = authService.getToken() || '';
+          if (!token) {
+            navigate('/login');
+            return;
+          }
+
+          const now = new Date();
+          const daysMap: Record<string, number> = { week: 7, month: 30, quarter: 90, year: 365 };
+          const rangeDays = daysMap[reportPeriod] ?? 30;
+          const startDate = new Date(now);
+          startDate.setDate(now.getDate() - rangeDays);
+
+          const startDateStr = startDate.toISOString().split('T')[0];
+          const endDateStr = now.toISOString().split('T')[0];
+
+          try {
+            const [sommeilRes, repasRes, activitesRes] = await Promise.all([
+              sommeilService.getSommeils({ startDate: startDateStr, endDate: endDateStr }, token),
+              repasService.getRepas({ startDate: startDateStr, endDate: endDateStr }, token),
+              activiteService.getActivites({ startDate: startDateStr, endDate: endDateStr }, token)
+            ]);
+
+            const sommeils: EntreeSommeil[] = sommeilRes.success && sommeilRes.data ? (Array.isArray(sommeilRes.data) ? sommeilRes.data : [sommeilRes.data]) : [];
+            const repas: EntreeRepas[] = repasRes.success && repasRes.data ? (Array.isArray(repasRes.data) ? repasRes.data : [repasRes.data]) : [];
+            const activites: EntreeActivite[] = activitesRes.success && activitesRes.data ? (Array.isArray(activitesRes.data) ? activitesRes.data : [activitesRes.data]) : [];
+
+            // Construire la timeline des statistiques
+            const dateMap = new Map<string, StatistiquesJournalieres>();
+            for (let d = new Date(startDate); d <= now; d.setDate(d.getDate() + 1)) {
+              const dateStr = d.toISOString().split('T')[0];
+              dateMap.set(dateStr, {
+                date: dateStr,
+                sommeil: 0,
+                qualiteSommeilMoyenne: 0,
+                calories: 0,
+                activiteMinutes: 0
+              });
+            }
+
+            sommeils.forEach(s => {
+              const dateStr = new Date(s.date).toISOString().split('T')[0];
+              const existing = dateMap.get(dateStr);
+              if (existing) {
+                existing.sommeil = s.dureeSommeil;
+                existing.qualiteSommeilMoyenne = s.qualiteSommeil;
+                dateMap.set(dateStr, existing);
+              }
+            });
+
+            repas.forEach(r => {
+              const dateStr = new Date(r.date).toISOString().split('T')[0];
+              const existing = dateMap.get(dateStr);
+              if (existing) {
+                const totalCalories = Array.isArray(r.aliments) ? r.aliments.reduce((t, a) => t + (a.calories || 0), 0) : (r.calories || 0);
+                existing.calories += totalCalories;
+                dateMap.set(dateStr, existing);
+              }
+            });
+
+            activites.forEach(a => {
+              const dateStr = new Date(a.date).toISOString().split('T')[0];
+              const existing = dateMap.get(dateStr);
+              if (existing) {
+                existing.activiteMinutes += a.duree || 0;
+                dateMap.set(dateStr, existing);
+              }
+            });
+
+            const statsData = Array.from(dateMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            setStats(statsData);
+          } catch (error) {
+            console.error('Erreur chargement statistiques réelles:', error);
+            toast({
+              title: 'Erreur',
+              description: "Impossible de charger le rapport. Veuillez réessayer.",
+              variant: 'destructive'
+            });
+          }
+        };
+
+        fetchRealStats();
       } catch (error) {
         console.error('Erreur lors du chargement des données utilisateur:', error);
         authService.logout();
@@ -76,7 +153,7 @@ export default function Reports() {
     } else {
       navigate('/login');
     }
-  }, [navigate]);
+  }, [navigate, reportPeriod, toast]);
 
   if (!user) return null;
 
