@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '@/services/api';
-import { MockDataService } from '@/services/mockData';
+import { authService, sommeilService, repasService, activiteService, objectifService } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,14 +16,66 @@ import {
   Clock,
   Zap
 } from 'lucide-react';
-import { StatistiquesJournalieres, ObjectifUtilisateur, User } from '@/types/health';
+import { StatistiquesJournalieres, ObjectifUtilisateur, User, EntreeSommeil, EntreeRepas, EntreeActivite } from '@/types/health';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Dashboard() {
   const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
   const [objectifs, setObjectifs] = useState<ObjectifUtilisateur[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const dataService = MockDataService.getInstance();
+  const { toast } = useToast();
+
+  // Fonction pour calculer les statistiques à partir des données réelles
+  const calculateStats = (sommeil: EntreeSommeil[], repas: EntreeRepas[], activites: EntreeActivite[]) => {
+    // Créer un dictionnaire de dates pour les 7 derniers jours
+    const today = new Date();
+    const statsMap: Record<string, StatistiquesJournalieres> = {};
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(today.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      statsMap[dateStr] = {
+        date: dateStr,
+        sommeil: 0,
+        calories: 0,
+        activiteMinutes: 0,
+        qualiteSommeilMoyenne: 0
+      };
+    }
+    
+    // Ajouter les données de sommeil
+    sommeil.forEach(s => {
+      const dateStr = new Date(s.date).toISOString().split('T')[0];
+      if (statsMap[dateStr]) {
+        statsMap[dateStr].sommeil = s.dureeSommeil;
+        statsMap[dateStr].qualiteSommeilMoyenne = s.qualiteSommeil;
+      }
+    });
+    
+    // Ajouter les données de repas
+    repas.forEach(r => {
+      const dateStr = new Date(r.date).toISOString().split('T')[0];
+      if (statsMap[dateStr]) {
+        statsMap[dateStr].calories += r.calories || 0;
+      }
+    });
+    
+    // Ajouter les données d'activité
+    activites.forEach(a => {
+      const dateStr = new Date(a.date).toISOString().split('T')[0];
+      if (statsMap[dateStr]) {
+        statsMap[dateStr].activiteMinutes += a.duree || 0;
+      }
+    });
+    
+    // Convertir le dictionnaire en tableau
+    return Object.values(statsMap).sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  };
 
   useEffect(() => {
     // Vérifier si l'utilisateur est authentifié
@@ -33,27 +84,60 @@ export default function Dashboard() {
       return;
     }
 
-    // Récupérer les données utilisateur depuis localStorage
-    const userData = localStorage.getItem('userData');
-    if (userData) {
+    const fetchData = async () => {
+      setIsLoading(true);
+      const token = authService.getToken() || '';
+      
       try {
+        // Récupérer les données utilisateur depuis localStorage
+        const userData = localStorage.getItem('userData');
+        if (!userData) {
+          navigate('/login');
+          return;
+        }
+        
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         
-        // Charger les données mockées
-        const statsData = dataService.getStatistiquesJournalieres(parsedUser.id);
-        const objectifsData = dataService.getObjectifs(parsedUser.id);
-        setStats(statsData);
-        setObjectifs(objectifsData);
+        // Récupérer les données réelles depuis les API
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 7);
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = new Date().toISOString().split('T')[0];
+        
+        const [sommeilRes, repasRes, activitesRes, objectifsRes] = await Promise.all([
+          sommeilService.getSommeils({ startDate: startDateStr, endDate: endDateStr }, token),
+          repasService.getRepas({ startDate: startDateStr, endDate: endDateStr }, token),
+          activiteService.getActivites({ startDate: startDateStr, endDate: endDateStr }, token),
+          objectifService.getObjectifs(token)
+        ]);
+        
+        // Vérifier les réponses et mettre à jour les états
+        if (objectifsRes.success && objectifsRes.data) {
+          setObjectifs(Array.isArray(objectifsRes.data) ? objectifsRes.data : [objectifsRes.data]);
+        }
+        
+        // Calculer les statistiques à partir des données réelles
+        const sommeilData = sommeilRes.success && sommeilRes.data ? (Array.isArray(sommeilRes.data) ? sommeilRes.data : [sommeilRes.data]) : [];
+        const repasData = repasRes.success && repasRes.data ? (Array.isArray(repasRes.data) ? repasRes.data : [repasRes.data]) : [];
+        const activitesData = activitesRes.success && activitesRes.data ? (Array.isArray(activitesRes.data) ? activitesRes.data : [activitesRes.data]) : [];
+        
+        const calculatedStats = calculateStats(sommeilData, repasData, activitesData);
+        setStats(calculatedStats);
       } catch (error) {
-        console.error('Erreur lors du chargement des données utilisateur:', error);
-        authService.logout();
-        navigate('/login');
+        console.error('Erreur lors du chargement des données:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les données. Veuillez réessayer.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      navigate('/login');
-    }
-  }, [navigate]);
+    };
+    
+    fetchData();
+  }, [navigate, toast]);
 
   if (!user) return null;
 

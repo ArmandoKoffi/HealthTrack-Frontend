@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '@/services/api';
-import { MockDataService } from '@/services/mockData';
+import { authService, objectifService } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
 import { User } from '@/types/health';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,8 +35,8 @@ export default function Goals() {
   });
   
   const navigate = useNavigate();
-  const dataService = MockDataService.getInstance();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Vérifier si l'utilisateur est authentifié
@@ -46,32 +45,55 @@ export default function Goals() {
       return;
     }
 
-    // Récupérer les données utilisateur depuis localStorage
-    const userData = localStorage.getItem('userData');
-    if (userData) {
+    const fetchData = async () => {
+      setIsLoading(true);
+      const token = authService.getToken() || '';
+      
       try {
+        // Récupérer les données utilisateur depuis localStorage
+        const userData = localStorage.getItem('userData');
+        if (!userData) {
+          navigate('/login');
+          return;
+        }
+        
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         
-        // Charger les données mockées
-        const objectifsData = dataService.getObjectifs(parsedUser.id);
-        setObjectifs(objectifsData);
+        // Charger les données réelles depuis l'API
+        const result = await objectifService.getObjectifs(token);
+        
+        if (result.success && result.data) {
+          setObjectifs(Array.isArray(result.data) ? result.data : [result.data]);
+        } else {
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger les objectifs",
+            variant: "destructive",
+          });
+        }
       } catch (error) {
-        console.error('Erreur lors du chargement des données utilisateur:', error);
-        authService.logout();
-        navigate('/login');
+        console.error('Erreur lors du chargement des objectifs:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les objectifs",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      navigate('/login');
-    }
-  }, [navigate]);
+    };
+    
+    fetchData();
+  }, [navigate, toast]);
 
   if (!user) return null;
 
   const handleSave = async () => {
+    setIsLoading(true);
     try {
-      const nouvelObjectif: Omit<ObjectifUtilisateur, 'id'> = {
-        userId: user.id,
+      const token = authService.getToken() || '';
+      const nouvelObjectif = {
         type: formData.type,
         valeurCible: parseFloat(formData.valeurCible),
         valeurActuelle: getCurrentValue(formData.type),
@@ -80,24 +102,31 @@ export default function Goals() {
         actif: true
       };
 
-      // Simuler l'ajout
-      const newId = `obj-${Date.now()}`;
-      const newObjectif = { ...nouvelObjectif, id: newId };
+      const result = await objectifService.create(nouvelObjectif, token);
       
-      setObjectifs([...objectifs, newObjectif]);
-      setIsCreating(false);
-      setFormData({ type: 'poids', valeurCible: '', dateFinSouhaitee: '' });
-      
-      toast({
-        title: "Objectif créé !",
-        description: "Votre nouvel objectif a été ajouté avec succès",
-      });
+      if (result.success && result.data) {
+        // Ajouter le nouvel objectif à la liste
+        const newObjectif = result.data;
+        setObjectifs([...objectifs, newObjectif]);
+        setIsCreating(false);
+        setFormData({ type: 'poids', valeurCible: '', dateFinSouhaitee: '' });
+        
+        toast({
+          title: "Objectif créé !",
+          description: "Votre nouvel objectif a été ajouté avec succès",
+        });
+      } else {
+        throw new Error(result.message || "Erreur lors de la création de l'objectif");
+      }
     } catch (error) {
+      console.error("Erreur lors de la création de l'objectif:", error);
       toast({
         title: "Erreur",
         description: "Impossible de créer l'objectif",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 

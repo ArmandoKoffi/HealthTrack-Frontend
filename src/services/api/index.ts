@@ -5,6 +5,10 @@
 // Import des services
 import { authService } from './authService';
 import { profileService } from './profileService';
+import { sommeilService } from './sommeilService';
+import { repasService } from './repasService';
+import { activiteService } from './activiteService';
+import { objectifService } from './objectifService';
 import { apiConfig, getAuthHeaders, validateResponse, handleApiError } from './config';
 
 // Ré-export des types et services
@@ -25,6 +29,10 @@ export {
   type PasswordChangeData, 
   type ProfileResponse 
 } from './profileService';
+export { sommeilService } from './sommeilService';
+export { repasService } from './repasService';
+export { activiteService } from './activiteService';
+export { objectifService } from './objectifService';
 
 /**
  * Fonction utilitaire pour initialiser l'authentification

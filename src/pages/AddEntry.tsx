@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { authService } from '@/services/api';
-import { MockDataService } from '@/services/mockData';
+import { authService, sommeilService, repasService, activiteService } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,6 @@ export default function AddEntry() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const dataService = MockDataService.getInstance();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -132,13 +130,17 @@ export default function AddEntry() {
     setIsLoading(true);
 
     try {
+      const token = authService.getToken() || '';
       const entree = {
-        userId: user.id,
-        ...sommeilData,
+        date: sommeilData.date,
+        heureCoucher: sommeilData.heureCoucher,
+        heureReveil: sommeilData.heureReveil,
+        qualiteSommeil: sommeilData.qualiteSommeil,
+        notes: sommeilData.notes,
         dureeSommeil: calculerDureeSommeil()
       };
 
-      const result = await dataService.ajouterEntreeSommeil(entree);
+      const result = await sommeilService.create(entree, token);
       
       if (result.success) {
         toast({
@@ -146,8 +148,11 @@ export default function AddEntry() {
           description: `Durée: ${calculerDureeSommeil().toFixed(1)}h`,
         });
         navigate('/dashboard');
+      } else {
+        throw new Error(result.message || "Erreur lors de l'enregistrement");
       }
     } catch (error) {
+      console.error("Erreur lors de l'enregistrement du sommeil:", error);
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer les données",
@@ -163,14 +168,16 @@ export default function AddEntry() {
     setIsLoading(true);
 
     try {
+      const token = authService.getToken() || '';
       const entree = {
-        userId: user.id,
-        ...repasData,
+        date: repasData.date,
+        typeRepas: repasData.typeRepas,
         aliments: repasData.aliments.filter(a => a.trim() !== ''),
-        calories: repasData.calories ? parseInt(repasData.calories) : undefined
+        calories: repasData.calories ? parseInt(repasData.calories) : 0,
+        notes: repasData.notes
       };
 
-      const result = await dataService.ajouterEntreeRepas(entree);
+      const result = await repasService.create(entree, token);
       
       if (result.success) {
         toast({
@@ -178,8 +185,11 @@ export default function AddEntry() {
           description: `${entree.aliments.length} aliments ajoutés`,
         });
         navigate('/dashboard');
+      } else {
+        throw new Error(result.message || "Erreur lors de l'enregistrement");
       }
     } catch (error) {
+      console.error("Erreur lors de l'enregistrement du repas:", error);
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer les données",
@@ -195,13 +205,16 @@ export default function AddEntry() {
     setIsLoading(true);
 
     try {
+      const token = authService.getToken() || '';
       const entree = {
-        userId: user.id,
-        ...activiteData,
-        duree: parseInt(activiteData.duree)
+        date: activiteData.date,
+        typeActivite: activiteData.typeActivite,
+        duree: parseInt(activiteData.duree),
+        intensite: activiteData.intensite,
+        notes: activiteData.notes
       };
 
-      const result = await dataService.ajouterEntreeActivite(entree);
+      const result = await activiteService.create(entree, token);
       
       if (result.success) {
         toast({
@@ -209,6 +222,8 @@ export default function AddEntry() {
           description: `${entree.duree} minutes de ${entree.typeActivite}`,
         });
         navigate('/dashboard');
+      } else {
+        throw new Error(result.message || "Erreur lors de l'enregistrement");
       }
     } catch (error) {
       toast({

@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { authService, profileService } from '@/services/api';
-import { MockDataService } from '@/services/mockData';
+import { authService, profileService, sommeilService, repasService, activiteService } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,8 @@ import {
   Trash2,
   Plus,
   Filter,
-  Search
+  Search,
+  Loader2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -40,7 +40,6 @@ export default function History() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   
-  const dataService = MockDataService.getInstance();
   const { toast } = useToast();
   
   const activeTab = searchParams.get('type') || 'sommeil';
@@ -77,20 +76,45 @@ export default function History() {
 
       if (mounted && currentUser) {
         setUser(currentUser);
-        const sommeilData = dataService.getEntreesSommeil(currentUser.id);
-        const repasData = dataService.getEntreesRepas(currentUser.id);
-        const activiteData = dataService.getEntreesActivites(currentUser.id);
-        
-        setSommeilEntries(Array.isArray(sommeilData) ? sommeilData : []);
-        setRepasEntries(Array.isArray(repasData) ? repasData : []);
-        setActiviteEntries(Array.isArray(activiteData) ? activiteData : []);
+        try {
+          // Récupérer les données réelles depuis les API
+          const startDate = new Date();
+          startDate.setDate(startDate.getDate() - 30); // Récupérer les données des 30 derniers jours
+          const startDateStr = startDate.toISOString().split('T')[0];
+          const endDateStr = new Date().toISOString().split('T')[0];
+          
+          const [sommeilRes, repasRes, activiteRes] = await Promise.all([
+            sommeilService.getSommeils({ startDate: startDateStr, endDate: endDateStr }, token),
+            repasService.getRepas({ startDate: startDateStr, endDate: endDateStr }, token),
+            activiteService.getActivites({ startDate: startDateStr, endDate: endDateStr }, token)
+          ]);
+          
+          if (sommeilRes.success && sommeilRes.data) {
+            setSommeilEntries(Array.isArray(sommeilRes.data) ? sommeilRes.data : [sommeilRes.data]);
+          }
+          
+          if (repasRes.success && repasRes.data) {
+            setRepasEntries(Array.isArray(repasRes.data) ? repasRes.data : [repasRes.data]);
+          }
+          
+          if (activiteRes.success && activiteRes.data) {
+            setActiviteEntries(Array.isArray(activiteRes.data) ? activiteRes.data : [activiteRes.data]);
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement des données:', error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger les données. Veuillez réessayer.",
+            variant: "destructive"
+          });
+        }
       }
 
       setLoading(false);
     })();
 
     return () => { mounted = false; };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   /* Fallback rendu conditionnel dans le JSX principal pour éviter les hooks conditionnels */
 

@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '@/services/api';
-import { MockDataService } from '@/services/mockData';
+import { authService, sommeilService, repasService, activiteService } from '@/services/api';
 import { Navbar } from '@/components/Layout/Navbar';
-import { User } from '@/types/health';
+import { User, EntreeSommeil, EntreeRepas, EntreeActivite } from '@/types/health';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -28,15 +27,18 @@ import {
   TrendingUp,
   Calendar,
   BarChart3,
-  Target
+  Target,
+  Loader2
 } from 'lucide-react';
 import { StatistiquesJournalieres } from '@/types/health';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Statistics() {
   const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const dataService = MockDataService.getInstance();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Vérifier si l'utilisateur est authentifié
@@ -45,27 +47,139 @@ export default function Statistics() {
       return;
     }
 
-    // Récupérer les données utilisateur depuis localStorage
-    const userData = localStorage.getItem('userData');
-    if (userData) {
+    const fetchData = async () => {
+      setIsLoading(true);
+      const token = authService.getToken() || '';
+      
+      // Récupérer les données utilisateur depuis localStorage
+      const userData = localStorage.getItem('userData');
+      if (!userData) {
+        navigate('/login');
+        return;
+      }
+      
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         
-        // Charger les données mockées
-        const statsData = dataService.getStatistiquesJournalieres(parsedUser.id);
+        // Récupérer les données des 30 derniers jours
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 30);
+        
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
+        
+        // Récupérer les données réelles depuis les API
+        const [sommeilRes, repasRes, activitesRes] = await Promise.all([
+          sommeilService.getSommeils({ startDate: startDateStr, endDate: endDateStr }, token),
+          repasService.getRepas({ startDate: startDateStr, endDate: endDateStr }, token),
+          activiteService.getActivites({ startDate: startDateStr, endDate: endDateStr }, token)
+        ]);
+        
+        // Transformer les données en format StatistiquesJournalieres
+        const sommeils = sommeilRes.success && sommeilRes.data ? (Array.isArray(sommeilRes.data) ? sommeilRes.data : [sommeilRes.data]) : [];
+        const repas = repasRes.success && repasRes.data ? (Array.isArray(repasRes.data) ? repasRes.data : [repasRes.data]) : [];
+        const activites = activitesRes.success && activitesRes.data ? (Array.isArray(activitesRes.data) ? activitesRes.data : [activitesRes.data]) : [];
+        
+        // Créer un dictionnaire de dates pour regrouper les données
+        const dateMap = new Map<string, StatistiquesJournalieres>();
+        
+        // Initialiser le dictionnaire avec toutes les dates dans la plage
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          const dateStr = d.toISOString().split('T')[0];
+          dateMap.set(dateStr, {
+            date: dateStr,
+            sommeil: 0,
+            qualiteSommeilMoyenne: 0,
+            calories: 0,
+            activiteMinutes: 0
+          });
+        }
+        
+        // Ajouter les données de sommeil
+        sommeils.forEach(sommeil => {
+          const dateStr = sommeil.date.split('T')[0];
+          const existingData = dateMap.get(dateStr) || {
+            date: dateStr,
+            sommeil: 0,
+            qualiteSommeilMoyenne: 0,
+            calories: 0,
+            activiteMinutes: 0
+          };
+          
+          existingData.sommeil = sommeil.dureeSommeil;
+          existingData.qualiteSommeilMoyenne = sommeil.qualiteSommeil;
+          dateMap.set(dateStr, existingData);
+        });
+        
+        // Ajouter les données de repas (calories)
+        repas.forEach(repas => {
+          const dateStr = repas.date.split('T')[0];
+          const existingData = dateMap.get(dateStr) || {
+            date: dateStr,
+            sommeil: 0,
+            qualiteSommeilMoyenne: 0,
+            calories: 0,
+            activiteMinutes: 0
+          };
+          
+          // Calculer les calories totales pour ce repas
+          const repasCalories = repas.aliments.reduce((total, aliment) => total + aliment.calories, 0);
+          existingData.calories += repasCalories;
+          dateMap.set(dateStr, existingData);
+        });
+        
+        // Ajouter les données d'activité
+        activites.forEach(activite => {
+          const dateStr = activite.date.split('T')[0];
+          const existingData = dateMap.get(dateStr) || {
+            date: dateStr,
+            sommeil: 0,
+            qualiteSommeilMoyenne: 0,
+            calories: 0,
+            activiteMinutes: 0
+          };
+          
+          existingData.activiteMinutes += activite.duree;
+          dateMap.set(dateStr, existingData);
+        });
+        
+        // Convertir le dictionnaire en tableau et trier par date
+        const statsData = Array.from(dateMap.values())
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        
         setStats(statsData);
       } catch (error) {
-        console.error('Erreur lors du chargement des données utilisateur:', error);
-        authService.logout();
-        navigate('/login');
+        console.error('Erreur lors du chargement des données:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les statistiques. Veuillez réessayer.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      navigate('/login');
-    }
-  }, [navigate]);
+    };
+    
+    fetchData();
+  }, [navigate, toast]);
 
   if (!user) return null;
+  
+  if (isLoading) {
+    return (
+      <>
+        <Navbar />
+        <div className="container mx-auto p-4 flex items-center justify-center min-h-[80vh]">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Chargement des statistiques...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   // Préparation des données pour les graphiques
   const donneesSommeil = stats.map(s => ({
