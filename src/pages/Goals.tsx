@@ -29,7 +29,7 @@ export default function Goals() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
-    type: 'poids' as 'poids' | 'sommeil' | 'activite' | 'calories',
+    type: 'poids' as 'poids' | 'sommeil' | 'activite' | 'calories' | 'eau',
     valeurCible: '',
     dateFinSouhaitee: ''
   });
@@ -222,6 +222,7 @@ export default function Goals() {
       case 'sommeil': return 7.5;
       case 'activite': return 120;
       case 'calories': return 1800;
+      case 'eau': return 1.5; // Valeur par défaut en litres
       default: return 0;
     }
   };
@@ -231,7 +232,8 @@ export default function Goals() {
       poids: 'Poids',
       sommeil: 'Sommeil',
       activite: 'Activité physique',
-      calories: 'Calories'
+      calories: 'Calories',
+      eau: 'Hydratation'
     };
     return labels[type as keyof typeof labels] || type;
   };
@@ -241,7 +243,8 @@ export default function Goals() {
       poids: 'kg',
       sommeil: 'h/nuit',
       activite: 'min/semaine',
-      calories: 'cal/jour'
+      calories: 'cal/jour',
+      eau: 'L/jour'
     };
     return units[type as keyof typeof units] || '';
   };
