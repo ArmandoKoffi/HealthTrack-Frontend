@@ -47,8 +47,8 @@ export class RealtimeService {
       // Fermer la connexion existante si elle existe
       this.disconnect();
 
-      // Créer une nouvelle connexion SSE
-      const url = `${apiConfig.baseURL}/realtime/events`;
+      // Créer une nouvelle connexion SSE avec token en query (EventSource ne supporte pas les headers)
+      const url = `${apiConfig.baseURL}/realtime/events?token=${encodeURIComponent(this.token)}`;
       this.eventSource = new EventSource(url);
 
       // Ajouter le token dans les headers (limitation d'EventSource)
@@ -127,8 +127,6 @@ export class RealtimeService {
         this.handleProfileUpdate(event.data as User);
         break;
       case 'notification':
-        this.handleNotification(event.data as NotificationData);
-        break;
         this.handleNotification(event.data as NotificationData);
         break;
       case 'heartbeat':
