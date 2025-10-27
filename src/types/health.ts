@@ -53,14 +53,34 @@ export interface EntreeActivite {
   notes?: string;
 }
 
+export interface NotificationProgressData {
+  currentValue?: number;
+  targetValue?: number;
+  progressPercentage?: number;
+  achievementType?: string; // e.g., 'weekly_goal', 'milestone', etc.
+}
+
+export interface NotificationReminderConfig {
+  isRecurring?: boolean;
+  frequency?: string; // e.g., 'daily', 'weekly'
+  nextReminderDate?: string;
+  lastSentDate?: string;
+}
+
 export interface Notification {
   id: string;
   userId: string;
   titre: string;
   message: string;
-  type: 'rappel' | 'felicitations' | 'objectif' | 'conseil';
+  type: 'rappel' | 'felicitations' | 'objectif' | 'conseil' | 'progres' | 'rappel_activite' | 'rappel_repas' | 'rappel_sommeil';
   date: string;
   lu: boolean;
+  priority?: 'low' | 'medium' | 'high';
+  isAutomatic?: boolean;
+  relatedObjectId?: string;
+  relatedObjectType?: string; // e.g., 'Objectif', 'Activite', 'Repas', 'Sommeil'
+  progressData?: NotificationProgressData;
+  reminderConfig?: NotificationReminderConfig;
 }
 
 export interface StatistiquesJournalieres {

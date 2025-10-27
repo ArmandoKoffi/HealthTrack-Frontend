@@ -16,8 +16,12 @@ import {
   Clock,
   Mail,
   Check,
+  Activity,
+  Utensils,
+  Moon,
 } from 'lucide-react';
 import { realtimeService, RealtimeEvent } from '@/services/api/realtimeService';
+import { Progress } from '@/components/ui/progress';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -83,7 +87,7 @@ export default function Notifications() {
           }
 
           // Si la notification ressemble à une notification persistée, l'ajouter à la liste
-          const allowedTypes = ['rappel', 'felicitations', 'objectif', 'conseil'];
+          const allowedTypes = ['rappel', 'felicitations', 'objectif', 'conseil', 'progres', 'rappel_activite', 'rappel_repas', 'rappel_sommeil'];
           if (data && typeof data === 'object' && (data.titre || data.title) && data.message && allowedTypes.includes(data.type)) {
             const newNotif: Notification = {
               id: String(data.id || Date.now()),
@@ -93,6 +97,12 @@ export default function Notifications() {
               type: data.type,
               date: data.date || new Date().toISOString(),
               lu: false,
+              priority: data.priority,
+              isAutomatic: data.isAutomatic,
+              relatedObjectId: data.relatedObjectId,
+              relatedObjectType: data.relatedObjectType,
+              progressData: data.progressData,
+              reminderConfig: data.reminderConfig,
             };
             setNotifications((prev) => [newNotif, ...prev]);
           }
@@ -182,25 +192,41 @@ export default function Notifications() {
         return <Target className="h-5 w-5 text-success" />;
       case 'conseil':
         return <Lightbulb className="h-5 w-5 text-secondary-accent" />;
+      case 'progres':
+        return <CheckCircle className="h-5 w-5 text-success" />;
+      case 'rappel_activite':
+        return <Activity className="h-5 w-5 text-info" />;
+      case 'rappel_repas':
+        return <Utensils className="h-5 w-5 text-warning" />;
+      case 'rappel_sommeil':
+        return <Moon className="h-5 w-5 text-secondary-accent" />;
       default:
         return <Bell className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
   const getTypeBadge = (type: Notification['type']) => {
-    const styles = {
+    const styles: Record<Notification['type'], string> = {
       rappel: 'bg-info text-info-foreground',
       felicitations: 'bg-warning text-warning-foreground',
       objectif: 'bg-success text-success-foreground',
-      conseil: 'bg-secondary-accent text-white'
-    };
+      conseil: 'bg-secondary-accent text-white',
+      progres: 'bg-success text-success-foreground',
+      rappel_activite: 'bg-info text-info-foreground',
+      rappel_repas: 'bg-warning text-warning-foreground',
+      rappel_sommeil: 'bg-secondary-accent text-white',
+    } as any;
     
-    const labels = {
+    const labels: Record<Notification['type'], string> = {
       rappel: 'Rappel',
       felicitations: 'Félicitations',
       objectif: 'Objectif',
-      conseil: 'Conseil'
-    };
+      conseil: 'Conseil',
+      progres: 'Progrès',
+      rappel_activite: 'Rappel activité',
+      rappel_repas: 'Rappel repas',
+      rappel_sommeil: 'Rappel sommeil',
+    } as any;
 
     return (
       <Badge className={styles[type]}>
@@ -228,6 +254,32 @@ export default function Notifications() {
         minute: '2-digit'
       });
     }
+  };
+
+  const renderNotificationContent = (n: Notification) => {
+    const isProgress = n.type === 'progres' && n.progressData && typeof n.progressData.progressPercentage === 'number';
+    if (!isProgress) {
+      return <p className="text-muted-foreground">{n.message}</p>;
+    }
+    const pct = Math.max(0, Math.min(100, Math.round(n.progressData!.progressPercentage || 0)));
+    return (
+      <div className="space-y-2">
+        <p className="text-muted-foreground">{n.message}</p>
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>Progression</span>
+          <span>{pct}%</span>
+        </div>
+        <Progress value={pct} />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {typeof n.progressData!.currentValue === 'number' && (
+            <Badge variant="outline">Actuel: {n.progressData!.currentValue}</Badge>
+          )}
+          {typeof n.progressData!.targetValue === 'number' && (
+            <Badge variant="outline">Cible: {n.progressData!.targetValue}</Badge>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const notificationsNonLues = notifications.filter(n => !n.lu);
@@ -345,7 +397,7 @@ export default function Notifications() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">{notification.message}</p>
+                    {renderNotificationContent(notification)}
                   </CardContent>
                 </Card>
               ))}
@@ -388,7 +440,7 @@ export default function Notifications() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">{notification.message}</p>
+                    {renderNotificationContent(notification)}
                   </CardContent>
                 </Card>
               ))}
@@ -425,6 +477,10 @@ export default function Notifications() {
               <li>• <strong>Félicitations :</strong> Célèbrent vos réussites et objectifs atteints</li>
               <li>• <strong>Conseils :</strong> Suggestions personnalisées pour améliorer votre santé</li>
               <li>• <strong>Objectifs :</strong> Mises à jour sur votre progression vers vos objectifs</li>
+              <li>• <strong>Progrès :</strong> Affichent votre avancement avec des barres de progression</li>
+              <li>• <strong>Rappel activité :</strong> Vous encouragent à rester actif</li>
+              <li>• <strong>Rappel repas :</strong> Vous rappellent de bien vous alimenter</li>
+              <li>• <strong>Rappel sommeil :</strong> Vous aident à maintenir un bon rythme de sommeil</li>
             </ul>
           </CardContent>
         </Card>
