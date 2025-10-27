@@ -149,6 +149,32 @@
   body {
     @apply bg-background text-foreground font-sans;
     transition: var(--transition-smooth);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html, body, #root {
+    min-height: 100vh;
+  }
+  @supports (min-height: 100svh) {
+    html, body, #root { min-height: 100svh; }
+  }
+  @supports (min-height: 100dvh) {
+    html, body, #root { min-height: 100dvh; }
+  }
+
+  img, svg, video, canvas { 
+    display: block; 
+    max-width: 100%; 
+    height: auto; 
+  }
+
+  button, input, select, textarea { 
+    font: inherit; 
+    color: inherit; 
   }
 }
 
