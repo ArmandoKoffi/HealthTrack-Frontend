@@ -53,7 +53,7 @@ export default function Reports() {
   const { toast } = useToast();
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportData, setExportData] = useState<any | null>(null);
-
+  const [isExporting, setIsExporting] = useState(false);
   // Helper pour calculer la plage de dates selon reportPeriod
   const getDateRangeForPeriod = () => {
     const end = new Date();
@@ -259,7 +259,6 @@ export default function Reports() {
     { name: 'Jours inactifs', value: (filteredStats.length - (report?.joursActifs || 0)), color: '#ef4444' }
   ];
 
-  const [isExporting, setIsExporting] = useState(false);
   const exportReport = async () => {
     try {
       setIsExporting(true);
