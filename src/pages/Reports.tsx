@@ -775,6 +775,13 @@ export default function Reports() {
           title={`Rapport HealthTrack - ${getPeriodLabel()}`}
           content={`Sommeil moyen: ${report?.sommeilMoyen.toFixed(1)}h | Activité: ${Math.round((report?.activiteTotale || 0) / 60)}h`}
         />
+
+        <ExportPdfModal 
+          open={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          data={exportData}
+          periodLabel={getPeriodLabel()}
+        />
       </main>
     </div>
   );
