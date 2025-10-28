@@ -53,6 +53,7 @@ export default function Reports() {
   const { toast } = useToast();
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportData, setExportData] = useState<any | null>(null);
+
   // Helper pour calculer la plage de dates selon reportPeriod
   const getDateRangeForPeriod = () => {
     const end = new Date();
