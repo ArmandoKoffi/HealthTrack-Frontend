@@ -214,6 +214,17 @@ export default function Dashboard() {
     return labels[exportPeriod];
   };
 
+  const exportReport = async () => {
+    const { startDateStr, endDateStr } = getDateRangeForPeriod();
+    const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
+    if (!res.success) {
+      toast({ title: 'Export impossible', description: res.message || 'Erreur lors de la récupération des données', variant: 'destructive' });
+      return;
+    }
+    setExportData(res.data);
+    setShowExportModal(true);
+  };
+
   // Fonction pour obtenir la salutation en fonction de l'heure
   const getSalutation = () => {
     const heure = new Date().getHours();
