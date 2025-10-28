@@ -42,10 +42,11 @@ import { ExportPdfModal } from '@/components/ExportPdfModal';
 import { exportService } from '@/services/api/exportService';
 import { UserReport } from '@/components/pdf/UserReport';
 import { pdf } from '@react-pdf/renderer';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Reports() {
   const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
-  const [reportPeriod, setReportPeriod] = useState('month');
+  const [reportPeriod, setReportPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
   const [showShareModal, setShowShareModal] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
@@ -54,13 +55,26 @@ export default function Reports() {
   const [exportData, setExportData] = useState<any | null>(null);
   // Helper pour calculer la plage de dates selon reportPeriod
   const getDateRangeForPeriod = () => {
-    const now = new Date();
-    const daysMap: Record<string, number> = { week: 7, month: 30, quarter: 90, year: 365 };
-    const rangeDays = daysMap[reportPeriod] ?? 30;
-    const start = new Date(now);
-    start.setDate(now.getDate() - rangeDays);
+    const end = new Date();
+    let start = new Date(end);
+    switch (reportPeriod) {
+      case 'week':
+        start.setDate(end.getDate() - 7);
+        break;
+      case 'month':
+        start.setMonth(end.getMonth() - 1);
+        break;
+      case 'quarter':
+        start.setMonth(end.getMonth() - 3);
+        break;
+      case 'year':
+        start.setFullYear(end.getFullYear() - 1);
+        break;
+      default:
+        start.setMonth(end.getMonth() - 1);
+    }
     const startDateStr = start.toISOString().split('T')[0];
-    const endDateStr = now.toISOString().split('T')[0];
+    const endDateStr = end.toISOString().split('T')[0];
     return { startDateStr, endDateStr };
   };
   
@@ -344,24 +358,17 @@ export default function Reports() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {[
-                { value: 'week', label: 'Semaine', short: 'Sem' },
-                { value: 'month', label: 'Mois', short: 'Mois' },
-                { value: 'quarter', label: 'Trimestre', short: 'Trim' },
-                { value: 'year', label: 'Année', short: 'An' }
-              ].map((period) => (
-                <Button
-                  key={period.value}
-                  variant={reportPeriod === period.value ? "default" : "outline"}
-                  onClick={() => setReportPeriod(period.value)}
-                  className="w-full"
-                >
-                  <span className="hidden sm:inline">{period.label}</span>
-                  <span className="sm:hidden">{period.short}</span>
-                </Button>
-              ))}
-            </div>
+            <Select value={reportPeriod} onValueChange={(v) => setReportPeriod(v as any)}>
+              <SelectTrigger className="w-full sm:w-64">
+                <SelectValue placeholder="Période du rapport" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Cette semaine</SelectItem>
+                <SelectItem value="month">Ce mois</SelectItem>
+                <SelectItem value="quarter">Ce trimestre</SelectItem>
+                <SelectItem value="year">Cette année</SelectItem>
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
 
