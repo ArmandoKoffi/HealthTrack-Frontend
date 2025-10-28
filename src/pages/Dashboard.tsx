@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportData, setExportData] = useState<ExportPayload | null>(null);
   const [exportPeriod, setExportPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('week');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Fonction pour calculer les statistiques à partir des données réelles
   const calculateStats = (sommeil: EntreeSommeil[], repas: EntreeRepas[], activites: EntreeActivite[]) => {
@@ -215,14 +216,27 @@ export default function Dashboard() {
   };
 
   const exportReport = async () => {
-    const { startDateStr, endDateStr } = getDateRangeForPeriod();
-    const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
-    if (!res.success) {
-      toast({ title: 'Export impossible', description: res.message || 'Erreur lors de la récupération des données', variant: 'destructive' });
-      return;
+    try {
+      setIsExporting(true);
+      const { startDateStr, endDateStr } = getDateRangeForPeriod();
+      const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
+      if (!res.success) {
+        toast({ title: 'Export impossible', description: res.message || 'Erreur lors de la récupération des données', variant: 'destructive' });
+        return;
+      }
+      setExportData(res.data);
+      setShowExportModal(true);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Erreur lors de l\u2019export';
+      const isRateLimit = msg.includes('Trop de requêtes');
+      toast({
+        title: isRateLimit ? 'Limite atteinte' : 'Export impossible',
+        description: isRateLimit ? 'Vous avez atteint la limite d\u2019export. Réessayez dans quelques minutes.' : msg,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExporting(false);
     }
-    setExportData(res.data);
-    setShowExportModal(true);
   };
 
   // Fonction pour obtenir la salutation en fonction de l'heure
@@ -387,7 +401,7 @@ export default function Dashboard() {
                     <SelectItem value="year">Cette année</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" className="w-full justify-start" onClick={exportReport}>
+                <Button variant="outline" className="w-full justify-start" onClick={exportReport} disabled={isExporting}>
                   <Download className="mr-2 h-4 w-4" />
                   Exporter ({getPeriodLabel()})
                 </Button>

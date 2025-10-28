@@ -258,15 +258,29 @@ export default function Reports() {
     { name: 'Jours inactifs', value: (filteredStats.length - (report?.joursActifs || 0)), color: '#ef4444' }
   ];
 
+  const [isExporting, setIsExporting] = useState(false);
   const exportReport = async () => {
-    const { startDateStr, endDateStr } = getDateRangeForPeriod();
-    const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
-    if (!res.success) {
-      toast({ title: 'Export impossible', description: res.message || 'Erreur lors de la récupération des données', variant: 'destructive' });
-      return;
+    try {
+      setIsExporting(true);
+      const { startDateStr, endDateStr } = getDateRangeForPeriod();
+      const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
+      if (!res.success) {
+        toast({ title: 'Export impossible', description: res.message || 'Erreur lors de la récupération des données', variant: 'destructive' });
+        return;
+      }
+      setExportData(res.data);
+      setShowExportModal(true);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Erreur lors de l\u2019export';
+      const isRateLimit = msg.includes('Trop de requêtes');
+      toast({
+        title: isRateLimit ? 'Limite atteinte' : 'Export impossible',
+        description: isRateLimit ? 'Vous avez atteint la limite d\u2019export. Réessayez dans quelques minutes.' : msg,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExporting(false);
     }
-    setExportData(res.data);
-    setShowExportModal(true);
   };
 
   const printReport = async () => {
@@ -330,7 +344,7 @@ export default function Reports() {
             </div>
             
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-              <Button variant="outline" onClick={exportReport} className="w-full sm:w-auto">
+              <Button variant="outline" onClick={exportReport} className="w-full sm:w-auto" disabled={isExporting}>
                 <Download className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Exporter</span>
                 <span className="sm:hidden">Export</span>
