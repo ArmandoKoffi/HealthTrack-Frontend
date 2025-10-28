@@ -38,6 +38,10 @@ import {
   Area,
   AreaChart
 } from 'recharts';
+import { ExportPdfModal } from '@/components/ExportPdfModal';
+import { exportService } from '@/services/api/exportService';
+import { UserReport } from '@/components/pdf/UserReport';
+import { pdf } from '@react-pdf/renderer';
 
 export default function Reports() {
   const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
@@ -45,9 +49,10 @@ export default function Reports() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
-  
   const { toast } = useToast();
-
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportData, setExportData] = useState<any | null>(null);
+  
   useEffect(() => {
     // Vérifier si l'utilisateur est authentifié
     if (!authService.isAuthenticated()) {
@@ -228,69 +233,53 @@ export default function Reports() {
     { name: 'Jours inactifs', value: (filteredStats.length - (report?.joursActifs || 0)), color: '#ef4444' }
   ];
 
-  const exportReport = () => {
-    const reportData = {
-      utilisateur: `${user.prenom} ${user.nom}`,
-      periode: reportPeriod,
-      dateGeneration: new Date().toLocaleDateString('fr-FR'),
-      statistiques: report,
-      donnees: filteredStats,
-    };
-
-    const reportHtml = `
-      <html>
-        <head>
-          <title>Rapport HealthTrack</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .section { margin-bottom: 20px; }
-            .metric { display: inline-block; margin: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Rapport HealthTrack</h1>
-            <p>Utilisateur: ${user.prenom} ${user.nom}</p>
-            <p>Période: ${reportPeriod}</p>
-            <p>Généré le: ${new Date().toLocaleDateString('fr-FR')}</p>
-          </div>
-          <div class="section">
-            <h2>Résumé de la période</h2>
-            <div class="metric">
-              <h3>Sommeil moyen</h3>
-              <p>${report?.sommeilMoyen.toFixed(1)} heures</p>
-            </div>
-            <div class="metric">
-              <h3>Calories moyennes</h3>
-              <p>${Math.round(report?.caloriesMoyennes || 0)} cal/jour</p>
-            </div>
-            <div class="metric">
-              <h3>Activité totale</h3>
-              <p>${report?.activiteTotale} minutes</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
-
-    const blob = new Blob([reportHtml], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `rapport-healthtrack-${reportPeriod}-${new Date().toISOString().split('T')[0]}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const exportReport = async () => {
+    // Récupérer les données sécurisées pour l'export via backend
+    const res = await exportService.getUserData();
+    if (!res.success) {
+      toast({ title: 'Export impossible', description: res.message || 'Erreur lors de la récupération des données', variant: 'destructive' });
+      return;
+    }
+    setExportData(res.data);
+    setShowExportModal(true);
   };
 
-  const printReport = () => {
+  const printReport = async () => {
+    // Imprimer la page frontend
     window.print();
-    toast({
-      title: "Impression lancée",
-      description: "Votre rapport va être imprimé",
-    });
+    // Puis générer et imprimer aussi les données utilisateur en PDF
+    try {
+      const res = await exportService.getUserData();
+      if (res.success && res.data) {
+        const periodLabel = getPeriodLabel();
+        const doc = <UserReport data={res.data} periodLabel={periodLabel} />;
+        const blob = await pdf(doc).toBlob();
+        const url = URL.createObjectURL(blob);
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        iframe.onload = () => {
+          try {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+          } finally {
+            setTimeout(() => {
+              document.body.removeChild(iframe);
+              URL.revokeObjectURL(url);
+            }, 1000);
+          }
+        };
+      }
+    } catch (e) {
+      // Ignorer erreur d'impression PDF
+    }
+    toast({ title: 'Impression lancée', description: 'Votre rapport va être imprimé' });
   };
 
   const getPeriodLabel = () => {
@@ -312,12 +301,8 @@ export default function Reports() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                Rapports détaillés
-              </h1>
-              <p className="text-muted-foreground">
-                Analyse complète de vos données de santé
-              </p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Rapports détaillés</h1>
+              <p className="text-muted-foreground">Analyse complète de vos données de santé</p>
             </div>
             
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
@@ -763,3 +748,8 @@ export default function Reports() {
     </div>
   );
 }
+
+export { ExportPdfModal } from '@/components/ExportPdfModal';
+export { exportService } from '@/services/api/exportService';
+export { UserReport } from '@/components/pdf/UserReport';
+export { pdf } from '@react-pdf/renderer';
