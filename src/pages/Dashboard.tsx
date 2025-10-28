@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ExportPdfModal } from '@/components/ExportPdfModal';
 import { exportService } from '@/services/api/exportService';
 import type { ExportPayload } from '@/components/pdf/UserReport';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Dashboard() {
   const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
@@ -32,6 +33,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportData, setExportData] = useState<ExportPayload | null>(null);
+  const [exportPeriod, setExportPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('week');
 
   // Fonction pour calculer les statistiques à partir des données réelles
   const calculateStats = (sommeil: EntreeSommeil[], repas: EntreeRepas[], activites: EntreeActivite[]) => {
@@ -180,23 +182,36 @@ export default function Dashboard() {
   const objectifSommeil = objectifs.find(o => o.type === 'sommeil');
   const objectifActivite = objectifs.find(o => o.type === 'activite');
 
-  const exportReport = async () => {
-    try {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(endDate.getDate() - 7);
-      const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = endDate.toISOString().split('T')[0];
-      const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
-      if (!res.success || !res.data) {
-        toast({ title: 'Export impossible', description: res.message || 'Erreur lors de la récupération des données', variant: 'destructive' });
-        return;
-      }
-      setExportData(res.data);
-      setShowExportModal(true);
-    } catch (e) {
-      toast({ title: 'Erreur', description: 'Une erreur est survenue lors de l\'export', variant: 'destructive' });
+  const getDateRangeForPeriod = () => {
+    const end = new Date();
+    let start = new Date(end);
+    switch (exportPeriod) {
+      case 'week':
+        start.setDate(end.getDate() - 7);
+        break;
+      case 'month':
+        start.setMonth(end.getMonth() - 1);
+        break;
+      case 'quarter':
+        start.setMonth(end.getMonth() - 3);
+        break;
+      case 'year':
+        start.setFullYear(end.getFullYear() - 1);
+        break;
     }
+    const startDateStr = start.toISOString().split('T')[0];
+    const endDateStr = end.toISOString().split('T')[0];
+    return { startDateStr, endDateStr };
+  };
+
+  const getPeriodLabel = () => {
+    const labels = {
+      week: 'Cette semaine',
+      month: 'Ce mois',
+      quarter: 'Ce trimestre',
+      year: 'Cette année',
+    } as const;
+    return labels[exportPeriod];
   };
 
   // Fonction pour obtenir la salutation en fonction de l'heure
@@ -349,10 +364,23 @@ export default function Dashboard() {
                   Ajouter activité
                 </Button>
               </Link>
-              <Button variant="outline" className="w-full justify-start" onClick={exportReport}>
-                <Download className="mr-2 h-4 w-4" />
-                Exporter mes données (7 jours)
-              </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Select value={exportPeriod} onValueChange={(v) => setExportPeriod(v as any)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Période" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="week">Cette semaine</SelectItem>
+                    <SelectItem value="month">Ce mois</SelectItem>
+                    <SelectItem value="quarter">Ce trimestre</SelectItem>
+                    <SelectItem value="year">Cette année</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" className="w-full justify-start" onClick={exportReport}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Exporter ({getPeriodLabel()})
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -462,7 +490,7 @@ export default function Dashboard() {
         open={showExportModal}
         onClose={() => setShowExportModal(false)}
         data={exportData}
-        periodLabel={'7 derniers jours'}
+        periodLabel={getPeriodLabel()}
       />
     </div>
   );
