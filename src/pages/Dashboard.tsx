@@ -174,6 +174,19 @@ export default function Dashboard() {
   const objectifSommeil = objectifs.find(o => o.type === 'sommeil');
   const objectifActivite = objectifs.find(o => o.type === 'activite');
 
+  // Fonction pour obtenir la salutation en fonction de l'heure
+  const getSalutation = () => {
+    const heure = new Date().getHours();
+    
+    if (heure >= 5 && heure < 12) {
+      return "Bonjour";
+    } else if (heure >= 12 && heure < 18) {
+      return "Bon après-midi";
+    } else {
+      return "Bonsoir";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -182,7 +195,7 @@ export default function Dashboard() {
         {/* En-tête de bienvenue */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Bonjour, {user.prenom} ! 👋
+            {getSalutation()}, {user.prenom} ! 👋
           </h1>
           <p className="text-muted-foreground">
             Voici un aperçu de votre santé aujourd'hui
