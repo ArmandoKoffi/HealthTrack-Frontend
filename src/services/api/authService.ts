@@ -1,4 +1,5 @@
 import { apiConfig } from './config';
+import { getAuthHeaders } from './config';
 
 export interface User {
   id: string;
@@ -208,6 +209,29 @@ export const authService = {
       return data;
     } catch (error) {
       console.error('Erreur authService.verifyToken:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Déconnexion côté serveur pour libérer la session active
+   */
+  async logoutServer(token: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await fetch(`${apiConfig.baseURL}/auth/logout`, {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur lors de la déconnexion');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Erreur authService.logoutServer:', error);
       throw error;
     }
   },

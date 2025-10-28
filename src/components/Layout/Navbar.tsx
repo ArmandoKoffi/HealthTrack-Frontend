@@ -50,13 +50,22 @@ export const Navbar = () => {
     }
   }, []);
 
-  const handleLogout = () => {
-    authService.logout();
-    toast({
-      title: "Déconnexion réussie",
-      description: "À bientôt sur HealthTrack !",
-    });
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      const token = authService.getToken();
+      if (token) {
+        await authService.logoutServer(token);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion serveur:', error);
+    } finally {
+      authService.logout();
+      toast({
+        title: "Déconnexion réussie",
+        description: "À bientôt sur HealthTrack !",
+      });
+      navigate('/');
+    }
   };
 
   const navItems = [
