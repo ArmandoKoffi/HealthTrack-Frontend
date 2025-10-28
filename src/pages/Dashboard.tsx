@@ -14,10 +14,14 @@ import {
   TrendingUp,
   Calendar,
   Clock,
-  Zap
+  Zap,
+  Download
 } from 'lucide-react';
 import { StatistiquesJournalieres, ObjectifUtilisateur, User, EntreeSommeil, EntreeRepas, EntreeActivite } from '@/types/health';
 import { useToast } from '@/hooks/use-toast';
+import { ExportPdfModal } from '@/components/ExportPdfModal';
+import { exportService } from '@/services/api/exportService';
+import type { ExportPayload } from '@/components/pdf/UserReport';
 
 export default function Dashboard() {
   const [stats, setStats] = useState<StatistiquesJournalieres[]>([]);
@@ -26,6 +30,8 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportData, setExportData] = useState<ExportPayload | null>(null);
 
   // Fonction pour calculer les statistiques à partir des données réelles
   const calculateStats = (sommeil: EntreeSommeil[], repas: EntreeRepas[], activites: EntreeActivite[]) => {
@@ -173,6 +179,25 @@ export default function Dashboard() {
 
   const objectifSommeil = objectifs.find(o => o.type === 'sommeil');
   const objectifActivite = objectifs.find(o => o.type === 'activite');
+
+  const exportReport = async () => {
+    try {
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - 7);
+      const startDateStr = startDate.toISOString().split('T')[0];
+      const endDateStr = endDate.toISOString().split('T')[0];
+      const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
+      if (!res.success || !res.data) {
+        toast({ title: 'Export impossible', description: res.message || 'Erreur lors de la récupération des données', variant: 'destructive' });
+        return;
+      }
+      setExportData(res.data);
+      setShowExportModal(true);
+    } catch (e) {
+      toast({ title: 'Erreur', description: 'Une erreur est survenue lors de l\'export', variant: 'destructive' });
+    }
+  };
 
   // Fonction pour obtenir la salutation en fonction de l'heure
   const getSalutation = () => {
@@ -324,6 +349,10 @@ export default function Dashboard() {
                   Ajouter activité
                 </Button>
               </Link>
+              <Button variant="outline" className="w-full justify-start" onClick={exportReport}>
+                <Download className="mr-2 h-4 w-4" />
+                Exporter mes données (7 jours)
+              </Button>
             </CardContent>
           </Card>
 
@@ -429,6 +458,15 @@ export default function Dashboard() {
           </Link>
         </div>
       </main>
+      <ExportPdfModal 
+        open={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        data={exportData}
+        periodLabel={'7 derniers jours'}
+      />
     </div>
   );
 }
+
+export { exportService };
+export { ExportPayload };

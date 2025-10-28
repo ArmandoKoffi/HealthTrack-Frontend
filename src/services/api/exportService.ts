@@ -1,4 +1,5 @@
 import { authService } from './authService';
+import { apiConfig, getAuthHeaders, validateResponse } from './config';
 
 export type ExportDataResponse = {
   success: boolean;
@@ -6,25 +7,20 @@ export type ExportDataResponse = {
   message?: string;
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-
 export const exportService = {
-  async getUserData(): Promise<ExportDataResponse> {
+  async getUserData(params?: { startDate?: string; endDate?: string }): Promise<ExportDataResponse> {
     const token = authService.getToken();
     if (!token) return { success: false, message: 'Non authentifié' };
 
-    const res = await fetch(`${API_BASE}/export/user-data`, {
+    const qs = new URLSearchParams();
+    if (params?.startDate) qs.set('startDate', params.startDate);
+    if (params?.endDate) qs.set('endDate', params.endDate);
+    const url = `${apiConfig.baseURL}/export/user-data${qs.toString() ? `?${qs.toString()}` : ''}`;
+
+    const res = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(token),
     });
-    try {
-      const json = await res.json();
-      return json;
-    } catch (e) {
-      return { success: false, message: 'Erreur de parsing JSON' };
-    }
+    return await validateResponse(res) as ExportDataResponse;
   }
 };

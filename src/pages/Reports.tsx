@@ -52,6 +52,17 @@ export default function Reports() {
   const { toast } = useToast();
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportData, setExportData] = useState<any | null>(null);
+  // Helper pour calculer la plage de dates selon reportPeriod
+  const getDateRangeForPeriod = () => {
+    const now = new Date();
+    const daysMap: Record<string, number> = { week: 7, month: 30, quarter: 90, year: 365 };
+    const rangeDays = daysMap[reportPeriod] ?? 30;
+    const start = new Date(now);
+    start.setDate(now.getDate() - rangeDays);
+    const startDateStr = start.toISOString().split('T')[0];
+    const endDateStr = now.toISOString().split('T')[0];
+    return { startDateStr, endDateStr };
+  };
   
   useEffect(() => {
     // Vérifier si l'utilisateur est authentifié
@@ -234,8 +245,8 @@ export default function Reports() {
   ];
 
   const exportReport = async () => {
-    // Récupérer les données sécurisées pour l'export via backend
-    const res = await exportService.getUserData();
+    const { startDateStr, endDateStr } = getDateRangeForPeriod();
+    const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
     if (!res.success) {
       toast({ title: 'Export impossible', description: res.message || 'Erreur lors de la récupération des données', variant: 'destructive' });
       return;
@@ -245,11 +256,10 @@ export default function Reports() {
   };
 
   const printReport = async () => {
-    // Imprimer la page frontend
     window.print();
-    // Puis générer et imprimer aussi les données utilisateur en PDF
     try {
-      const res = await exportService.getUserData();
+      const { startDateStr, endDateStr } = getDateRangeForPeriod();
+      const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
       if (res.success && res.data) {
         const periodLabel = getPeriodLabel();
         const doc = <UserReport data={res.data} periodLabel={periodLabel} />;
