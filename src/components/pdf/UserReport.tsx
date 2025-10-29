@@ -116,16 +116,30 @@ export const UserReport: React.FC<Props> = ({ data, periodLabel }) => {
           <Text style={styles.sectionTitle}>Profil</Text>
           <View style={styles.row}><Text style={styles.label}>Email</Text><Text style={styles.value}>{user.email}</Text></View>
           {user.dateNaissance && (
-            <View style={styles.row}><Text style={styles.label}>Date de naissance</Text><Text style={styles.value}>{user.dateNaissance}</Text></View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Date de naissance</Text>
+              <Text style={styles.value}>
+                {new Date(user.dateNaissance).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}
+              </Text>
+            </View>
           )}
           {typeof user.taille === 'number' && (
-            <View style={styles.row}><Text style={styles.label}>Taille</Text><Text style={styles.value}>{user.taille} cm</Text></View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Taille</Text>
+              <Text style={styles.value}>{user.taille.toFixed(0)} cm</Text>
+            </View>
           )}
           {typeof user.poids === 'number' && (
-            <View style={styles.row}><Text style={styles.label}>Poids</Text><Text style={styles.value}>{user.poids} kg</Text></View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Poids</Text>
+              <Text style={styles.value}>{user.poids.toFixed(1)} kg</Text>
+            </View>
           )}
           {typeof user.objectifPoids === 'number' && (
-            <View style={styles.row}><Text style={styles.label}>Objectif poids</Text><Text style={styles.value}>{user.objectifPoids} kg</Text></View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Objectif poids</Text>
+              <Text style={styles.value}>{user.objectifPoids.toFixed(1)} kg</Text>
+            </View>
           )}
         </View>
 
@@ -133,7 +147,7 @@ export const UserReport: React.FC<Props> = ({ data, periodLabel }) => {
           <Text style={styles.sectionTitle}>Sommeil ({sommeil.length})</Text>
           {sommeil.slice(0, 20).map((s: any, idx: number) => (
             <Text key={`sleep-${idx}`} style={styles.listItem}>
-              {new Date(s.date).toLocaleDateString('fr-FR')} · {s.dureeSommeil}h · Qualité {s.qualiteSommeil}/5
+              {new Date(s.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})} · {s.dureeSommeil.toFixed(1)}h · Qualité {s.qualiteSommeil}/5
             </Text>
           ))}
           {sommeil.length > 20 && <Text style={styles.chip}>+ {sommeil.length - 20} entrées</Text>}
@@ -143,7 +157,7 @@ export const UserReport: React.FC<Props> = ({ data, periodLabel }) => {
           <Text style={styles.sectionTitle}>Repas ({repas.length})</Text>
           {repas.slice(0, 20).map((r: any, idx: number) => (
             <Text key={`meal-${idx}`} style={styles.listItem}>
-              {new Date(r.date).toLocaleDateString('fr-FR')} · {r.typeRepas} · {r.calories || 0} cal
+              {new Date(r.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})} · {r.typeRepas} · {(r.calories || 0).toFixed(0)} cal
             </Text>
           ))}
           {repas.length > 20 && <Text style={styles.chip}>+ {repas.length - 20} entrées</Text>}
@@ -153,7 +167,7 @@ export const UserReport: React.FC<Props> = ({ data, periodLabel }) => {
           <Text style={styles.sectionTitle}>Activités ({activites.length})</Text>
           {activites.slice(0, 20).map((a: any, idx: number) => (
             <Text key={`act-${idx}`} style={styles.listItem}>
-              {new Date(a.date).toLocaleDateString('fr-FR')} · {a.typeActivite} · {a.duree} min · {a.intensite}
+              {new Date(a.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})} · {a.typeActivite} · {parseInt(a.duree, 10)} min · {a.intensite}
             </Text>
           ))}
           {activites.length > 20 && <Text style={styles.chip}>+ {activites.length - 20} entrées</Text>}
@@ -163,7 +177,7 @@ export const UserReport: React.FC<Props> = ({ data, periodLabel }) => {
           <Text style={styles.sectionTitle}>Objectifs ({objectifs.length})</Text>
           {objectifs.slice(0, 20).map((o: any, idx: number) => (
             <Text key={`obj-${idx}`} style={styles.listItem}>
-              {o.type} · Actuel {o.valeurActuelle} / Cible {o.valeurCible} · du {new Date(o.dateDebut).toLocaleDateString('fr-FR')} au {new Date(o.dateFinSouhaitee).toLocaleDateString('fr-FR')}
+              {o.type} · Actuel {typeof o.valeurActuelle === 'number' ? o.valeurActuelle.toFixed(1) : o.valeurActuelle} / Cible {typeof o.valeurCible === 'number' ? o.valeurCible.toFixed(1) : o.valeurCible} · du {new Date(o.dateDebut).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})} au {new Date(o.dateFinSouhaitee).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}
             </Text>
           ))}
           {objectifs.length > 20 && <Text style={styles.chip}>+ {objectifs.length - 20} objectifs</Text>}
