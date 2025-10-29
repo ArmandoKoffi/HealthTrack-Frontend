@@ -645,105 +645,98 @@ const paginateContent = (data: ExportPayload, periodLabel?: string) => {
     return pages;
   }
 
-  // Essayer de tout mettre sur une seule page d'abord
-  const firstPageContent = [...baseContent];
-
-  // Ajouter toutes les sections complètes sur la première page
-  if (sommeil.length > 0) {
-    firstPageContent.push(<SleepSection key="sleep" sommeil={sommeil} />);
-    firstPageContent.push(<View key="spacing-sleep" style={styles.sectionSpacing} />);
-  }
-
-  if (repas.length > 0) {
-    firstPageContent.push(<MealsSection key="meals" repas={repas} />);
-    firstPageContent.push(<View key="spacing-meals" style={styles.sectionSpacing} />);
-  }
-
-  if (activites.length > 0) {
-    firstPageContent.push(<ActivitiesSection key="activities" activites={activites} />);
-    firstPageContent.push(<View key="spacing-activities" style={styles.sectionSpacing} />);
-  }
-
-  if (objectifs.length > 0) {
-    firstPageContent.push(<GoalsSection key="goals" objectifs={objectifs} />);
-  }
-
-  // Estimation simple : si on a beaucoup de données, on divise
-  const totalRows = sommeil.length + repas.length + activites.length + objectifs.length;
+  // Calculer le nombre total de pages nécessaires
+  let totalPages = 1;
   
-  if (totalRows <= 20) {
-    // Tout tient sur une page
-    pages.push(
-      <Page key="page-1" size="A4" style={styles.page}>
-        <Footer pageNumber={1} totalPages={1} />
-        {firstPageContent}
-      </Page>
-    );
-  } else {
-    // Diviser en deux pages
-    const firstPageSections = [...baseContent];
-    const secondPageSections: JSX.Element[] = [];
+  // Estimation basée sur le nombre total de lignes
+  const totalRows = sommeil.length + repas.length + activites.length + objectifs.length;
+  if (totalRows > 20) {
+    totalPages = 2;
+  }
 
-    // Sur la première page : toutes les sections mais avec moins de lignes
+  // Si une seule page suffit
+  if (totalPages === 1) {
+    const pageContent = [...baseContent];
+    
     if (sommeil.length > 0) {
-      firstPageSections.push(<SleepSection key="sleep" sommeil={sommeil} maxRows={6} />);
-      firstPageSections.push(<View key="spacing-sleep" style={styles.sectionSpacing} />);
+      pageContent.push(<SleepSection key="sleep" sommeil={sommeil} />);
+      pageContent.push(<View key="spacing-sleep" style={styles.sectionSpacing} />);
     }
 
     if (repas.length > 0) {
-      firstPageSections.push(<MealsSection key="meals" repas={repas} maxRows={5} />);
-      firstPageSections.push(<View key="spacing-meals" style={styles.sectionSpacing} />);
+      pageContent.push(<MealsSection key="meals" repas={repas} />);
+      pageContent.push(<View key="spacing-meals" style={styles.sectionSpacing} />);
     }
 
     if (activites.length > 0) {
-      firstPageSections.push(<ActivitiesSection key="activities" activites={activites} maxRows={5} />);
-    }
-
-    // Sur la deuxième page : les données restantes
-    if (sommeil.length > 6) {
-      secondPageSections.push(<SleepSection key="sleep-cont" sommeil={sommeil.slice(6)} isContinuation={true} />);
-      secondPageSections.push(<View key="spacing-sleep-cont" style={styles.sectionSpacing} />);
-    }
-
-    if (repas.length > 5) {
-      secondPageSections.push(<MealsSection key="meals-cont" repas={repas.slice(5)} isContinuation={true} />);
-      secondPageSections.push(<View key="spacing-meals-cont" style={styles.sectionSpacing} />);
-    }
-
-    if (activites.length > 5) {
-      secondPageSections.push(<ActivitiesSection key="activities-cont" activites={activites.slice(5)} isContinuation={true} />);
-      secondPageSections.push(<View key="spacing-activities-cont" style={styles.sectionSpacing} />);
+      pageContent.push(<ActivitiesSection key="activities" activites={activites} />);
+      pageContent.push(<View key="spacing-activities" style={styles.sectionSpacing} />);
     }
 
     if (objectifs.length > 0) {
-      secondPageSections.push(<GoalsSection key="goals" objectifs={objectifs} />);
+      pageContent.push(<GoalsSection key="goals" objectifs={objectifs} />);
     }
 
-    // Créer les pages
+    pages.push(
+      <Page key="page-1" size="A4" style={styles.page}>
+        <Footer pageNumber={1} totalPages={1} />
+        {pageContent}
+      </Page>
+    );
+  } else {
+    // Pour deux pages
+    const firstPageContent = [...baseContent];
+    const secondPageContent: JSX.Element[] = [];
+
+    // Première page avec données limitées
+    if (sommeil.length > 0) {
+      firstPageContent.push(<SleepSection key="sleep" sommeil={sommeil} maxRows={6} />);
+      firstPageContent.push(<View key="spacing-sleep" style={styles.sectionSpacing} />);
+    }
+
+    if (repas.length > 0) {
+      firstPageContent.push(<MealsSection key="meals" repas={repas} maxRows={5} />);
+      firstPageContent.push(<View key="spacing-meals" style={styles.sectionSpacing} />);
+    }
+
+    if (activites.length > 0) {
+      firstPageContent.push(<ActivitiesSection key="activities" activites={activites} maxRows={5} />);
+    }
+
+    // Deuxième page avec les données restantes
+    if (sommeil.length > 6) {
+      secondPageContent.push(<SleepSection key="sleep-cont" sommeil={sommeil.slice(6)} isContinuation={true} />);
+      secondPageContent.push(<View key="spacing-sleep-cont" style={styles.sectionSpacing} />);
+    }
+
+    if (repas.length > 5) {
+      secondPageContent.push(<MealsSection key="meals-cont" repas={repas.slice(5)} isContinuation={true} />);
+      secondPageContent.push(<View key="spacing-meals-cont" style={styles.sectionSpacing} />);
+    }
+
+    if (activites.length > 5) {
+      secondPageContent.push(<ActivitiesSection key="activities-cont" activites={activites.slice(5)} isContinuation={true} />);
+      secondPageContent.push(<View key="spacing-activities-cont" style={styles.sectionSpacing} />);
+    }
+
+    if (objectifs.length > 0) {
+      secondPageContent.push(<GoalsSection key="goals" objectifs={objectifs} />);
+    }
+
+    // Créer les pages avec la pagination correcte
     pages.push(
       <Page key="page-1" size="A4" style={styles.page}>
         <Footer pageNumber={1} totalPages={2} />
-        {firstPageSections}
+        {firstPageContent}
       </Page>
     );
 
-    if (secondPageSections.length > 0) {
-      pages.push(
-        <Page key="page-2" size="A4" style={styles.page}>
-          <Footer pageNumber={2} totalPages={2} />
-          {secondPageSections}
-        </Page>
-      );
-    } else {
-      // Si la deuxième page est vide, corriger la pagination
-      pages[0] = React.cloneElement(pages[0], {
-        children: React.Children.map(pages[0].props.children, child => 
-          child && child.type === Footer 
-            ? React.cloneElement(child, { pageNumber: 1, totalPages: 1 })
-            : child
-        )
-      });
-    }
+    pages.push(
+      <Page key="page-2" size="A4" style={styles.page}>
+        <Footer pageNumber={2} totalPages={2} />
+        {secondPageContent}
+      </Page>
+    );
   }
 
   return pages;
