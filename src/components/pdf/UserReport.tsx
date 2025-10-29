@@ -61,21 +61,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: 25,
   },
   sectionTitle: {
     fontSize: 14,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
     color: '#256D3A',
-    marginBottom: 16,
+    marginBottom: 12,
     paddingBottom: 6,
     borderBottom: '1pt solid #E0E0E0',
   },
   table: {
     width: '100%',
     border: '1pt solid #E0E0E0',
-    marginBottom: 16,
+    marginBottom: 8,
     marginTop: 8,
   },
   tableHeader: {
@@ -84,8 +84,8 @@ const styles = StyleSheet.create({
     borderBottom: '1pt solid #E0E0E0',
   },
   tableHeaderCell: {
-    padding: 10,
-    fontSize: 10,
+    padding: 8,
+    fontSize: 9,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
     color: '#256D3A',
@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   tableCell: {
-    padding: 10,
-    fontSize: 9,
+    padding: 8,
+    fontSize: 8,
     borderRight: '1pt solid #E0E0E0',
   },
   tableCellLast: {
@@ -187,11 +187,11 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   emptyState: {
-    padding: 25,
+    padding: 20,
     textAlign: 'center',
     backgroundColor: '#F8F9FA',
     border: '1pt dashed #E0E0E0',
-    marginTop: 12,
+    marginTop: 8,
   },
   emptyStateText: {
     fontSize: 10,
@@ -203,15 +203,15 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     fontStyle: 'italic',
-    marginTop: 12,
-    padding: 10,
+    marginTop: 8,
+    padding: 8,
     backgroundColor: '#F8F9FA',
     border: '1pt solid #E0E0E0',
   },
   statusBadge: {
-    fontSize: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    fontSize: 7,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 2,
     textAlign: 'center',
     fontWeight: 'bold',
@@ -224,13 +224,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF3CD',
     color: '#856404',
   },
-  sectionSpacing: {
-    marginBottom: 25,
-  },
   notesText: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#666666',
     fontStyle: 'italic',
+  },
+  sectionSpacing: {
+    marginBottom: 20,
   },
 });
 
@@ -358,7 +358,7 @@ const SummaryStats = ({ data }: { data: ExportPayload }) => (
     <View style={styles.statsGrid}>
       <View style={styles.statCard}>
         <Text style={styles.statValue}>{data.sommeil.length}</Text>
-        <Text style={styles.statLabel}>Jours de sommeil suivis</Text>
+        <Text style={styles.statLabel}>Jours de sommeil</Text>
       </View>
       <View style={styles.statCard}>
         <Text style={styles.statValue}>{data.repas.length}</Text>
@@ -376,22 +376,15 @@ const SummaryStats = ({ data }: { data: ExportPayload }) => (
   </View>
 );
 
-// Composant Données de sommeil format tableau
-const SleepSection = ({ sommeil }: { sommeil: any[] }) => {
-  if (sommeil.length === 0) {
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>3. DONNÉES DE SOMMEIL</Text>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Aucune donnée de sommeil disponible pour cette période</Text>
-        </View>
-      </View>
-    );
-  }
+// Composants de sections modulaires pour permettre la pagination
+const SleepSection = ({ sommeil, isContinuation = false }: { sommeil: any[]; isContinuation?: boolean }) => {
+  if (sommeil.length === 0) return null;
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>3. DONNÉES DE SOMMEIL</Text>
+      <Text style={styles.sectionTitle}>
+        3. DONNÉES DE SOMMEIL {isContinuation ? '(suite)' : ''}
+      </Text>
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
@@ -399,11 +392,11 @@ const SleepSection = ({ sommeil }: { sommeil: any[] }) => {
           <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Durée calculée</Text>
           <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Heure de coucher</Text>
           <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Heure de réveil</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Qualité du sommeil</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Qualité</Text>
           <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Notes</Text>
         </View>
         
-        {sommeil.slice(0, 10).map((s, index) => (
+        {sommeil.map((s, index) => (
           <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
             <Text style={[styles.tableCell, { flex: 1.2 }]}>
               {new Date(s.date).toLocaleDateString('fr-FR', {
@@ -424,32 +417,18 @@ const SleepSection = ({ sommeil }: { sommeil: any[] }) => {
           </View>
         ))}
       </View>
-      
-      {sommeil.length > 10 && (
-        <Text style={styles.continuationNotice}>
-          + {sommeil.length - 10} entrées supplémentaires non affichées
-        </Text>
-      )}
     </View>
   );
 };
 
-// Composant Données de repas format tableau
-const MealsSection = ({ repas }: { repas: any[] }) => {
-  if (repas.length === 0) {
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>4. DONNÉES NUTRITIONNELLES</Text>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Aucun repas enregistré pour cette période</Text>
-        </View>
-      </View>
-    );
-  }
+const MealsSection = ({ repas, isContinuation = false }: { repas: any[]; isContinuation?: boolean }) => {
+  if (repas.length === 0) return null;
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>4. DONNÉES NUTRITIONNELLES</Text>
+      <Text style={styles.sectionTitle}>
+        4. DONNÉES NUTRITIONNELLES {isContinuation ? '(suite)' : ''}
+      </Text>
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
@@ -460,8 +439,7 @@ const MealsSection = ({ repas }: { repas: any[] }) => {
           <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Notes</Text>
         </View>
         
-        {repas.slice(0, 8).map((r, index) => {
-          // Gérer les aliments consommés (peut être un tableau ou une string)
+        {repas.map((r, index) => {
           let alimentsText = 'Non spécifié';
           if (Array.isArray(r.aliments)) {
             alimentsText = r.aliments.join(', ');
@@ -496,43 +474,29 @@ const MealsSection = ({ repas }: { repas: any[] }) => {
           );
         })}
       </View>
-      
-      {repas.length > 8 && (
-        <Text style={styles.continuationNotice}>
-          + {repas.length - 8} repas supplémentaires non affichés
-        </Text>
-      )}
     </View>
   );
 };
 
-// Composant Activités physiques format tableau
-const ActivitiesSection = ({ activites }: { activites: any[] }) => {
-  if (activites.length === 0) {
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>5. ACTIVITÉS PHYSIQUES</Text>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Aucune activité physique enregistrée pour cette période</Text>
-        </View>
-      </View>
-    );
-  }
+const ActivitiesSection = ({ activites, isContinuation = false }: { activites: any[]; isContinuation?: boolean }) => {
+  if (activites.length === 0) return null;
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>5. ACTIVITÉS PHYSIQUES</Text>
+      <Text style={styles.sectionTitle}>
+        5. ACTIVITÉS PHYSIQUES {isContinuation ? '(suite)' : ''}
+      </Text>
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
           <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Date</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Durée (minutes)</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Durée (min)</Text>
           <Text style={[styles.tableHeaderCell, { flex: 1.2 }]}>Type d'activité</Text>
           <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Intensité</Text>
           <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Notes</Text>
         </View>
         
-        {activites.slice(0, 8).map((a, index) => (
+        {activites.map((a, index) => (
           <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
             <Text style={[styles.tableCell, { flex: 1 }]}>
               {new Date(a.date).toLocaleDateString('fr-FR', {
@@ -552,32 +516,18 @@ const ActivitiesSection = ({ activites }: { activites: any[] }) => {
           </View>
         ))}
       </View>
-      
-      {activites.length > 8 && (
-        <Text style={styles.continuationNotice}>
-          + {activites.length - 8} activités supplémentaires non affichées
-        </Text>
-      )}
     </View>
   );
 };
 
-// Composant Objectifs format tableau
-const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
-  if (objectifs.length === 0) {
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>6. OBJECTIFS DE SANTÉ</Text>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Aucun objectif défini pour cette période</Text>
-        </View>
-      </View>
-    );
-  }
+const GoalsSection = ({ objectifs, isContinuation = false }: { objectifs: any[]; isContinuation?: boolean }) => {
+  if (objectifs.length === 0) return null;
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>6. OBJECTIFS DE SANTÉ</Text>
+      <Text style={styles.sectionTitle}>
+        6. OBJECTIFS DE SANTÉ {isContinuation ? '(suite)' : ''}
+      </Text>
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
@@ -588,7 +538,7 @@ const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
           <Text style={[styles.tableHeaderCell, { flex: 1 }, styles.tableCellLast]}>Statut</Text>
         </View>
         
-        {objectifs.slice(0, 8).map((o, index) => {
+        {objectifs.map((o, index) => {
           const actuel = typeof o.valeurActuelle === 'number' ? o.valeurActuelle.toFixed(1) : o.valeurActuelle || 'N/A';
           const cible = typeof o.valeurCible === 'number' ? o.valeurCible.toFixed(1) : o.valeurCible || 'N/A';
           const debut = o.dateDebut ? new Date(o.dateDebut).toLocaleDateString('fr-FR', {
@@ -621,106 +571,133 @@ const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
           );
         })}
       </View>
-      
-      {objectifs.length > 8 && (
-        <Text style={styles.continuationNotice}>
-          + {objectifs.length - 8} objectifs supplémentaires non affichés
-        </Text>
-      )}
     </View>
   );
 };
 
-// Fonction pour diviser le contenu en plusieurs pages
+// Fonction pour paginer intelligemment le contenu
 const paginateContent = (data: ExportPayload, periodLabel?: string) => {
-  const pages = [];
-  const { user, meta } = data;
+  const pages: JSX.Element[] = [];
+  const { user, sommeil, repas, activites, objectifs, meta } = data;
 
-  // Première page avec toutes les sections principales
-  pages.push(
-    <Page key="page-1" size="A4" style={styles.page}>
-      <Footer pageNumber={1} totalPages={1} />
-      <Header user={user} periodLabel={periodLabel} meta={meta} />
-      <View style={styles.sectionSpacing} />
-      <ProfileSection user={user} />
-      <View style={styles.sectionSpacing} />
-      <SummaryStats data={data} />
-      <View style={styles.sectionSpacing} />
-      <SleepSection sommeil={data.sommeil.slice(0, 6)} />
-    </Page>
-  );
+  // Première page avec header, profil et stats
+  const firstPageContent: JSX.Element[] = [
+    <Header key="header" user={user} periodLabel={periodLabel} meta={meta} />,
+    <View key="spacing1" style={styles.sectionSpacing} />,
+    <ProfileSection key="profile" user={user} />,
+    <View key="spacing2" style={styles.sectionSpacing} />,
+    <SummaryStats key="stats" data={data} />,
+    <View key="spacing3" style={styles.sectionSpacing} />
+  ];
 
-  // Deuxième page si nécessaire (suite des données)
-  const hasMoreData = data.sommeil.length > 6 || data.repas.length > 0 || data.activites.length > 0 || data.objectifs.length > 0;
-  
-  if (hasMoreData) {
+  // Toutes les données à afficher (sans les sections vides)
+  const allDataSections: { type: string; data: any[]; component: JSX.Element }[] = [];
+
+  if (sommeil.length > 0) {
+    allDataSections.push({
+      type: 'sleep',
+      data: sommeil,
+      component: <SleepSection key="sleep" sommeil={sommeil} />
+    });
+  }
+
+  if (repas.length > 0) {
+    allDataSections.push({
+      type: 'meals',
+      data: repas,
+      component: <MealsSection key="meals" repas={repas} />
+    });
+  }
+
+  if (activites.length > 0) {
+    allDataSections.push({
+      type: 'activities',
+      data: activites,
+      component: <ActivitiesSection key="activities" activites={activites} />
+    });
+  }
+
+  if (objectifs.length > 0) {
+    allDataSections.push({
+      type: 'goals',
+      data: objectifs,
+      component: <GoalsSection key="goals" objectifs={objectifs} />
+    });
+  }
+
+  // Si aucune donnée, créer une page avec message vide
+  if (allDataSections.length === 0) {
     pages.push(
-      <Page key="page-2" size="A4" style={styles.page}>
-        <Footer pageNumber={2} totalPages={2} />
-        {/* Suite du sommeil si nécessaire */}
-        {data.sommeil.length > 6 && (
-          <>
-            <SleepSection sommeil={data.sommeil.slice(6)} />
-            <View style={styles.sectionSpacing} />
-          </>
-        )}
-        <MealsSection repas={data.repas} />
-        <View style={styles.sectionSpacing} />
-        <ActivitiesSection activites={data.activites} />
+      <Page key="page-1" size="A4" style={styles.page}>
+        <Footer pageNumber={1} totalPages={1} />
+        {firstPageContent}
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>
+            Aucune donnée de suivi disponible pour cette période
+          </Text>
+        </View>
       </Page>
     );
+    return pages;
+  }
 
-    // Troisième page si nécessaire (objectifs et données restantes)
-    const needsThirdPage = data.objectifs.length > 0 || data.repas.length > 8 || data.activites.length > 8;
+  // Essayer de tout mettre sur la première page
+  const firstPageSections = [...firstPageContent];
+  let currentPageSections = [...firstPageSections];
+  let currentPageNumber = 1;
+
+  // Ajouter les sections de données à la première page
+  for (const section of allDataSections) {
+    currentPageSections.push(section.component);
+    currentPageSections.push(<View key={`spacing-${section.type}`} style={styles.sectionSpacing} />);
+  }
+
+  // Vérifier si tout tient sur une page (estimation)
+  // Si c'est trop long, on va diviser en plusieurs pages
+  const estimatedFirstPageHeight = firstPageSections.length * 100 + allDataSections.length * 200;
+  
+  if (estimatedFirstPageHeight > 600) { // Si estimation dépasse la capacité d'une page
+    // Réinitialiser pour la pagination correcte
+    currentPageSections = [...firstPageSections];
     
-    if (needsThirdPage) {
+    // Ajouter progressivement les sections jusqu'à remplir la première page
+    for (let i = 0; i < allDataSections.length; i++) {
+      const section = allDataSections[i];
+      currentPageSections.push(section.component);
+      if (i < allDataSections.length - 1) {
+        currentPageSections.push(<View key={`spacing-${section.type}`} style={styles.sectionSpacing} />);
+      }
+      
+      // Si on dépasse une certaine limite, créer une nouvelle page
+      if (i === Math.floor(allDataSections.length / 2) - 1) {
+        pages.push(
+          <Page key={`page-${currentPageNumber}`} size="A4" style={styles.page}>
+            <Footer pageNumber={currentPageNumber} totalPages={2} />
+            {currentPageSections}
+          </Page>
+        );
+        currentPageNumber++;
+        currentPageSections = [];
+      }
+    }
+    
+    // Ajouter la dernière page si elle contient des sections
+    if (currentPageSections.length > 0) {
       pages.push(
-        <Page key="page-3" size="A4" style={styles.page}>
-          <Footer pageNumber={3} totalPages={3} />
-          {data.objectifs.length > 0 && (
-            <>
-              <GoalsSection objectifs={data.objectifs} />
-              <View style={styles.sectionSpacing} />
-            </>
-          )}
-          {/* On pourrait ajouter d'autres sections ici si nécessaire */}
+        <Page key={`page-${currentPageNumber}`} size="A4" style={styles.page}>
+          <Footer pageNumber={currentPageNumber} totalPages={currentPageNumber} />
+          {currentPageSections}
         </Page>
       );
-
-      // Mettre à jour le nombre total de pages pour toutes les pages
-      pages.forEach((page, index) => {
-        if (page.type === Page) {
-          page = React.cloneElement(page, {
-            children: React.Children.map(page.props.children, child => {
-              if (child && child.type === Footer) {
-                return React.cloneElement(child, {
-                  pageNumber: index + 1,
-                  totalPages: 3
-                });
-              }
-              return child;
-            })
-          });
-        }
-      });
-    } else {
-      // Mettre à jour pour 2 pages
-      pages.forEach((page, index) => {
-        if (page.type === Page) {
-          page = React.cloneElement(page, {
-            children: React.Children.map(page.props.children, child => {
-              if (child && child.type === Footer) {
-                return React.cloneElement(child, {
-                  pageNumber: index + 1,
-                  totalPages: 2
-                });
-              }
-              return child;
-            })
-          });
-        }
-      });
     }
+  } else {
+    // Tout tient sur une seule page
+    pages.push(
+      <Page key="page-1" size="A4" style={styles.page}>
+        <Footer pageNumber={1} totalPages={1} />
+        {currentPageSections}
+      </Page>
+    );
   }
 
   return pages;
