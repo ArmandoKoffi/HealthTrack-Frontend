@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { PDFViewer, pdf } from '@react-pdf/renderer';
 import { UserReport, ExportPayload } from './pdf/UserReport';
@@ -59,6 +59,7 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
       <DialogContent className="max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0">
         <DialogHeader className="px-4 pt-4">
           <DialogTitle>Prévisualisation du PDF</DialogTitle>
+          <DialogDescription>Prévisualisation du PDF généré avant téléchargement ou impression</DialogDescription>
         </DialogHeader>
         <div className="px-4 pb-4 flex flex-col gap-3">
           <div className="w-full h-[70vh] sm:h-[75vh] lg:h-[80vh] border rounded-md overflow-hidden bg-white">

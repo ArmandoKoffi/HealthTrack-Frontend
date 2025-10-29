@@ -1,18 +1,12 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 
-// Enregistrement d'une police sans sérif proche de l'UI (fallback)
-// Vous pouvez remplacer par Inter ou une police de la charte si disponible
-Font.register({ family: 'System', fonts: [
-  { src: 'https://fonts.gstatic.com/s/opensans/v34/mem8YaGs126MiZpBA-U1Upc4.woff2' },
-]});
-
 // Styles inspirés de la charte (verts et bleus, ombres légères)
 const styles = StyleSheet.create({
   page: {
     padding: 24,
     backgroundColor: '#F6FAF7', // proche de background
-    fontFamily: 'System',
+    fontFamily: 'Helvetica',
   },
   header: {
     marginBottom: 16,
