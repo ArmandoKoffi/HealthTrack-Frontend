@@ -56,14 +56,15 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o ? onClose() : undefined}>
-      <DialogContent className="w-[95vw] h-[95vh] max-w-none max-h-none m-0 p-0 flex flex-col bg-background border-0 shadow-2xl">
-        {/* Override pour positionner le modal avec des marges */}
+      <DialogContent className="w-[95vw] h-[95vh] max-w-none max-h-none m-0 p-0 flex flex-col bg-background border-0 shadow-2xl rounded-xl overflow-hidden">
+        {/* Override pour positionner le modal avec des marges et coins arrondis */}
         <style>{`
           @media (max-width: 768px) {
             [data-radix-dialog-content] {
               width: 98vw !important;
               height: 98vh !important;
               margin: 1vh 1vw !important;
+              border-radius: 1rem !important;
             }
           }
           @media (min-width: 769px) {
@@ -71,11 +72,12 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
               width: 95vw !important;
               height: 95vh !important;
               margin: 2.5vh 2.5vw !important;
+              border-radius: 1rem !important;
             }
           }
         `}</style>
         
-        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b bg-card">
+        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b bg-card rounded-t-xl">
           <DialogTitle className="text-xl font-bold">Prévisualisation du PDF</DialogTitle>
           <DialogDescription className="text-base">
             Prévisualisation du PDF généré avant téléchargement ou impression
@@ -89,44 +91,44 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
                 width="100%" 
                 height="100%" 
                 showToolbar={true}
-                className="min-h-0"
+                className="min-h-0 rounded-lg"
                 style={{ 
                   display: 'flex', 
                   flexDirection: 'column',
                   border: 'none',
-                  borderRadius: '0.375rem'
+                  borderRadius: '0.5rem'
                 }}
               >
                 {documentNode}
               </PDFViewer>
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-lg">
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-lg rounded-lg">
                 Aucune donnée à prévisualiser
               </div>
             )}
           </div>
         </div>
         
-        <div className="flex-shrink-0 border-t bg-card px-6 py-4">
+        <div className="flex-shrink-0 border-t bg-card px-6 py-4 rounded-b-xl">
           <div className="flex flex-col sm:flex-row gap-3 justify-end">
             <Button 
               variant="outline" 
               onClick={handleDownload}
-              className="min-w-[160px]"
+              className="min-w-[160px] rounded-lg"
             >
               Télécharger le PDF
             </Button>
             <Button 
               variant="outline" 
               onClick={handlePrintPdf}
-              className="min-w-[140px]"
+              className="min-w-[140px] rounded-lg"
             >
               Imprimer le PDF
             </Button>
             <Button 
               variant="default" 
               onClick={onClose}
-              className="min-w-[100px]"
+              className="min-w-[100px] rounded-lg"
             >
               Fermer
             </Button>
