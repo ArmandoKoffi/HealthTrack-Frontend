@@ -72,16 +72,6 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     borderBottom: '1pt solid #E0E0E0',
   },
-  subsection: {
-    marginBottom: 20,
-  },
-  subsectionTitle: {
-    fontSize: 12,
-    fontFamily: 'Helvetica',
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 10,
-  },
   table: {
     width: '100%',
     border: '1pt solid #E0E0E0',
@@ -146,23 +136,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#000000',
     width: '58%',
-  },
-  list: {
-    marginLeft: 15,
-    marginTop: 8,
-  },
-  listItem: {
-    flexDirection: 'row',
-    marginBottom: 6,
-  },
-  bullet: {
-    width: 10,
-    fontSize: 10,
-    marginRight: 5,
-  },
-  listText: {
-    flex: 1,
-    fontSize: 10,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -235,10 +208,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
     border: '1pt solid #E0E0E0',
   },
-  highlight: {
-    backgroundColor: '#E8F5E8',
-    padding: 2,
-  },
   statusBadge: {
     fontSize: 8,
     paddingHorizontal: 8,
@@ -257,6 +226,11 @@ const styles = StyleSheet.create({
   },
   sectionSpacing: {
     marginBottom: 25,
+  },
+  notesText: {
+    fontSize: 8,
+    color: '#666666',
+    fontStyle: 'italic',
   },
 });
 
@@ -290,7 +264,7 @@ interface Props {
   periodLabel?: string;
 }
 
-// Composant Footer professionnel
+// Composant Footer professionnel avec pagination dynamique
 const Footer = ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => (
   <View style={styles.footer} fixed>
     <Text style={styles.footerText}>
@@ -318,7 +292,7 @@ const Header = ({ user, periodLabel, meta }: { user: any; periodLabel?: string; 
     <View style={styles.metadata}>
       <Text>Email : {user.email}</Text>
       <Text>Généré le : {new Date(meta.generatedAt).toLocaleDateString('fr-FR')}</Text>
-      <Text>Version : {meta.version}</Text>
+      <Text>Référence : HT-{new Date().getFullYear()}-{Math.random().toString(36).substr(2, 6).toUpperCase()}</Text>
     </View>
   </View>
 );
@@ -421,33 +395,39 @@ const SleepSection = ({ sommeil }: { sommeil: any[] }) => {
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, { flex: 1.8 }]}>Date</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Durée (h)</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Qualité</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 2 }, styles.tableCellLast]}>Heures de coucher/léver</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.2 }]}>Date</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Durée calculée</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Heure de coucher</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Heure de réveil</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Qualité du sommeil</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Notes</Text>
         </View>
         
-        {sommeil.slice(0, 12).map((s, index) => (
+        {sommeil.slice(0, 10).map((s, index) => (
           <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
-            <Text style={[styles.tableCell, { flex: 1.8 }]}>
+            <Text style={[styles.tableCell, { flex: 1.2 }]}>
               {new Date(s.date).toLocaleDateString('fr-FR', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric'
               })}
             </Text>
-            <Text style={[styles.tableCell, { flex: 0.8 }]}>{s.dureeSommeil.toFixed(1)}</Text>
-            <Text style={[styles.tableCell, { flex: 0.8 }]}>{s.qualiteSommeil}/5</Text>
-            <Text style={[styles.tableCell, { flex: 2 }, styles.tableCellLast]}>
-              {s.heureCoucher || '--:--'} - {s.heureReveil || '--:--'}
+            <Text style={[styles.tableCell, { flex: 0.8 }]}>{s.dureeSommeil?.toFixed(1) || '0'}h</Text>
+            <Text style={[styles.tableCell, { flex: 0.8 }]}>{s.heureCoucher || '--:--'}</Text>
+            <Text style={[styles.tableCell, { flex: 0.8 }]}>{s.heureReveil || '--:--'}</Text>
+            <Text style={[styles.tableCell, { flex: 0.8 }]}>{s.qualiteSommeil || 0}/5</Text>
+            <Text style={[styles.tableCell, { flex: 1.2 }, styles.tableCellLast]}>
+              <Text style={styles.notesText}>
+                {s.notes || s.commentaires || 'Aucune note'}
+              </Text>
             </Text>
           </View>
         ))}
       </View>
       
-      {sommeil.length > 12 && (
+      {sommeil.length > 10 && (
         <Text style={styles.continuationNotice}>
-          + {sommeil.length - 12} entrées supplémentaires non affichées
+          + {sommeil.length - 10} entrées supplémentaires non affichées
         </Text>
       )}
     </View>
@@ -473,32 +453,53 @@ const MealsSection = ({ repas }: { repas: any[] }) => {
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, { flex: 1.6 }]}>Date et heure</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 1.2 }]}>Type de repas</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Calories</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 1.8 }, styles.tableCellLast]}>Description</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Date</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Type de repas</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Aliments consommés</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Calories</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Notes</Text>
         </View>
         
-        {repas.slice(0, 10).map((r, index) => (
-          <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
-            <Text style={[styles.tableCell, { flex: 1.6 }]}>
-              {new Date(r.date).toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit'
-              })} {r.heure || ''}
-            </Text>
-            <Text style={[styles.tableCell, { flex: 1.2 }]}>{r.typeRepas}</Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>{r.calories || 0}</Text>
-            <Text style={[styles.tableCell, { flex: 1.8 }, styles.tableCellLast]}>
-              {r.description || r.aliments || 'Non spécifié'}
-            </Text>
-          </View>
-        ))}
+        {repas.slice(0, 8).map((r, index) => {
+          // Gérer les aliments consommés (peut être un tableau ou une string)
+          let alimentsText = 'Non spécifié';
+          if (Array.isArray(r.aliments)) {
+            alimentsText = r.aliments.join(', ');
+          } else if (r.aliments) {
+            alimentsText = r.aliments;
+          } else if (r.description) {
+            alimentsText = r.description;
+          }
+
+          return (
+            <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
+              <Text style={[styles.tableCell, { flex: 1 }]}>
+                {new Date(r.date).toLocaleDateString('fr-FR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+                })}
+              </Text>
+              <Text style={[styles.tableCell, { flex: 1 }]}>{r.typeRepas || 'Non spécifié'}</Text>
+              <Text style={[styles.tableCell, { flex: 1.5 }]}>
+                <Text style={styles.notesText}>
+                  {alimentsText}
+                </Text>
+              </Text>
+              <Text style={[styles.tableCell, { flex: 0.8 }]}>{r.calories || 0}</Text>
+              <Text style={[styles.tableCell, { flex: 1.2 }, styles.tableCellLast]}>
+                <Text style={styles.notesText}>
+                  {r.notes || r.commentaires || 'Aucune note'}
+                </Text>
+              </Text>
+            </View>
+          );
+        })}
       </View>
       
-      {repas.length > 10 && (
+      {repas.length > 8 && (
         <Text style={styles.continuationNotice}>
-          + {repas.length - 10} repas supplémentaires non affichés
+          + {repas.length - 8} repas supplémentaires non affichés
         </Text>
       )}
     </View>
@@ -524,35 +525,37 @@ const ActivitiesSection = ({ activites }: { activites: any[] }) => {
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Date</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Type d'activité</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Durée (min)</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Intensité</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Calories brûlées</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Date</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Durée (minutes)</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.2 }]}>Type d'activité</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Intensité</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Notes</Text>
         </View>
         
-        {activites.slice(0, 10).map((a, index) => (
+        {activites.slice(0, 8).map((a, index) => (
           <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
-            <Text style={[styles.tableCell, { flex: 1.5 }]}>
+            <Text style={[styles.tableCell, { flex: 1 }]}>
               {new Date(a.date).toLocaleDateString('fr-FR', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric'
               })}
             </Text>
-            <Text style={[styles.tableCell, { flex: 1.5 }]}>{a.typeActivite}</Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>{parseInt(a.duree, 10)}</Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>{a.intensite}</Text>
+            <Text style={[styles.tableCell, { flex: 0.8 }]}>{parseInt(a.duree, 10) || 0}</Text>
+            <Text style={[styles.tableCell, { flex: 1.2 }]}>{a.typeActivite || 'Non spécifié'}</Text>
+            <Text style={[styles.tableCell, { flex: 0.8 }]}>{a.intensite || 'Non spécifié'}</Text>
             <Text style={[styles.tableCell, { flex: 1.2 }, styles.tableCellLast]}>
-              {a.caloriesBrulees || 0}
+              <Text style={styles.notesText}>
+                {a.notes || a.commentaires || 'Aucune note'}
+              </Text>
             </Text>
           </View>
         ))}
       </View>
       
-      {activites.length > 10 && (
+      {activites.length > 8 && (
         <Text style={styles.continuationNotice}>
-          + {activites.length - 10} activités supplémentaires non affichées
+          + {activites.length - 8} activités supplémentaires non affichées
         </Text>
       )}
     </View>
@@ -586,18 +589,18 @@ const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
         </View>
         
         {objectifs.slice(0, 8).map((o, index) => {
-          const actuel = typeof o.valeurActuelle === 'number' ? o.valeurActuelle.toFixed(1) : o.valeurActuelle;
-          const cible = typeof o.valeurCible === 'number' ? o.valeurCible.toFixed(1) : o.valeurCible;
-          const debut = new Date(o.dateDebut).toLocaleDateString('fr-FR', {
+          const actuel = typeof o.valeurActuelle === 'number' ? o.valeurActuelle.toFixed(1) : o.valeurActuelle || 'N/A';
+          const cible = typeof o.valeurCible === 'number' ? o.valeurCible.toFixed(1) : o.valeurCible || 'N/A';
+          const debut = o.dateDebut ? new Date(o.dateDebut).toLocaleDateString('fr-FR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
-          });
-          const fin = new Date(o.dateFinSouhaitee).toLocaleDateString('fr-FR', {
+          }) : 'Non définie';
+          const fin = o.dateFinSouhaitee ? new Date(o.dateFinSouhaitee).toLocaleDateString('fr-FR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
-          });
+          }) : 'Non définie';
           
           const isCompleted = typeof o.valeurActuelle === 'number' && 
                             typeof o.valeurCible === 'number' && 
@@ -605,7 +608,7 @@ const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
           
           return (
             <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
-              <Text style={[styles.tableCell, { flex: 1.5 }]}>{o.type}</Text>
+              <Text style={[styles.tableCell, { flex: 1.5 }]}>{o.type || 'Non spécifié'}</Text>
               <Text style={[styles.tableCell, { flex: 1 }]}>{actuel}</Text>
               <Text style={[styles.tableCell, { flex: 1 }]}>{cible}</Text>
               <Text style={[styles.tableCell, { flex: 1.8 }]}>{debut} - {fin}</Text>
@@ -628,28 +631,108 @@ const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
   );
 };
 
-// Composant principal
+// Fonction pour diviser le contenu en plusieurs pages
+const paginateContent = (data: ExportPayload, periodLabel?: string) => {
+  const pages = [];
+  const { user, meta } = data;
+
+  // Première page avec toutes les sections principales
+  pages.push(
+    <Page key="page-1" size="A4" style={styles.page}>
+      <Footer pageNumber={1} totalPages={1} />
+      <Header user={user} periodLabel={periodLabel} meta={meta} />
+      <View style={styles.sectionSpacing} />
+      <ProfileSection user={user} />
+      <View style={styles.sectionSpacing} />
+      <SummaryStats data={data} />
+      <View style={styles.sectionSpacing} />
+      <SleepSection sommeil={data.sommeil.slice(0, 6)} />
+    </Page>
+  );
+
+  // Deuxième page si nécessaire (suite des données)
+  const hasMoreData = data.sommeil.length > 6 || data.repas.length > 0 || data.activites.length > 0 || data.objectifs.length > 0;
+  
+  if (hasMoreData) {
+    pages.push(
+      <Page key="page-2" size="A4" style={styles.page}>
+        <Footer pageNumber={2} totalPages={2} />
+        {/* Suite du sommeil si nécessaire */}
+        {data.sommeil.length > 6 && (
+          <>
+            <SleepSection sommeil={data.sommeil.slice(6)} />
+            <View style={styles.sectionSpacing} />
+          </>
+        )}
+        <MealsSection repas={data.repas} />
+        <View style={styles.sectionSpacing} />
+        <ActivitiesSection activites={data.activites} />
+      </Page>
+    );
+
+    // Troisième page si nécessaire (objectifs et données restantes)
+    const needsThirdPage = data.objectifs.length > 0 || data.repas.length > 8 || data.activites.length > 8;
+    
+    if (needsThirdPage) {
+      pages.push(
+        <Page key="page-3" size="A4" style={styles.page}>
+          <Footer pageNumber={3} totalPages={3} />
+          {data.objectifs.length > 0 && (
+            <>
+              <GoalsSection objectifs={data.objectifs} />
+              <View style={styles.sectionSpacing} />
+            </>
+          )}
+          {/* On pourrait ajouter d'autres sections ici si nécessaire */}
+        </Page>
+      );
+
+      // Mettre à jour le nombre total de pages pour toutes les pages
+      pages.forEach((page, index) => {
+        if (page.type === Page) {
+          page = React.cloneElement(page, {
+            children: React.Children.map(page.props.children, child => {
+              if (child && child.type === Footer) {
+                return React.cloneElement(child, {
+                  pageNumber: index + 1,
+                  totalPages: 3
+                });
+              }
+              return child;
+            })
+          });
+        }
+      });
+    } else {
+      // Mettre à jour pour 2 pages
+      pages.forEach((page, index) => {
+        if (page.type === Page) {
+          page = React.cloneElement(page, {
+            children: React.Children.map(page.props.children, child => {
+              if (child && child.type === Footer) {
+                return React.cloneElement(child, {
+                  pageNumber: index + 1,
+                  totalPages: 2
+                });
+              }
+              return child;
+            })
+          });
+        }
+      });
+    }
+  }
+
+  return pages;
+};
+
+// Composant principal avec pagination automatique
 export const UserReport: React.FC<Props> = ({ data, periodLabel }) => {
-  const { user, sommeil, repas, activites, objectifs, meta } = data;
+  const pages = paginateContent(data, periodLabel);
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        <Footer pageNumber={1} totalPages={1} />
-        <Header user={user} periodLabel={periodLabel} meta={meta} />
-        <View style={styles.sectionSpacing} />
-        <ProfileSection user={user} />
-        <View style={styles.sectionSpacing} />
-        <SummaryStats data={data} />
-        <View style={styles.sectionSpacing} />
-        <SleepSection sommeil={sommeil} />
-        <View style={styles.sectionSpacing} />
-        <MealsSection repas={repas} />
-        <View style={styles.sectionSpacing} />
-        <ActivitiesSection activites={activites} />
-        <View style={styles.sectionSpacing} />
-        <GoalsSection objectifs={objectifs} />
-      </Page>
+      {pages}
     </Document>
   );
 };
