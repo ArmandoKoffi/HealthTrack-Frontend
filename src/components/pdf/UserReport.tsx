@@ -3,11 +3,22 @@ import { Document, Page, Text, View, StyleSheet, Font, Svg, Path } from '@react-
 
 // Enregistrement des polices pour améliorer la typographie
 Font.register({
-  family: 'Montserrat',
+  family: 'Inter',
   fonts: [
-    { src: 'https://fonts.gstatic.com/s/montserrat/v15/JTUSjIg1_i6t8kCHKm459Wlhzg.ttf', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/montserrat/v15/JTURjIg1_i6t8kCHKm45_bZF3gnD-w.ttf', fontWeight: 600 },
-    { src: 'https://fonts.gstatic.com/s/montserrat/v15/JTURjIg1_i6t8kCHKm45_dJE3gnD-w.ttf', fontWeight: 700 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.ttf', fontWeight: 400 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hjp-Ek-_EeA.ttf', fontWeight: 500 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.ttf', fontWeight: 600 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hjp-Ek-_EeA.ttf', fontWeight: 700 },
+  ],
+});
+
+// Police pour les titres
+Font.register({
+  family: 'Poppins',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfedw.ttf', fontWeight: 400 },
+    { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLEj6Z1xlEA.ttf', fontWeight: 600 },
+    { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlEA.ttf', fontWeight: 700 },
   ],
 });
 
@@ -17,8 +28,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     padding: 30,
     paddingBottom: 50, // Espace pour le pied de page
-    backgroundColor: '#FAFCFA', // Fond légèrement teinté pour un aspect premium
-    fontFamily: 'Montserrat',
+    backgroundColor: '#F9FAFC', // Fond légèrement bleuté pour un aspect corporate
+    fontFamily: 'Inter',
   },
   headerInfoContainer: {
     flexDirection: 'row',
@@ -37,60 +48,81 @@ const styles = StyleSheet.create({
     left: 30,
     right: 30,
     borderTopWidth: 1,
-    borderTopColor: '#DDE7DA',
+    borderTopColor: '#E1E8ED',
     paddingTop: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  footerContent: {
+    flexDirection: 'column',
+  },
   footerText: {
-    fontSize: 9,
-    color: '#587A66',
+    fontSize: 8,
+    color: '#5A6B7B',
+    marginBottom: 2,
+  },
+  footerPageInfo: {
+    backgroundColor: '#EFF6FF',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  footerPageText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#3B82F6',
   },
   header: {
     marginBottom: 20,
     padding: 16,
-    backgroundColor: '#E8F5E9', // accent clair
+    backgroundColor: '#FFFFFF', // Fond blanc pour un aspect épuré
     borderRadius: 8,
     borderBottomWidth: 3,
-    borderBottomColor: '#256D3A',
+    borderBottomColor: '#3B82F6', // Bleu moderne
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderTopWidth: 1,
-    borderLeftColor: '#DDE7DA',
-    borderRightColor: '#DDE7DA',
-    borderTopColor: '#DDE7DA',
+    borderLeftColor: '#E1E8ED',
+    borderRightColor: '#E1E8ED',
+    borderTopColor: '#E1E8ED',
+    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.05)',
   },
   title: {
-    fontSize: 24,
-    color: '#1F5132', // foreground proche
+    fontSize: 26,
+    color: '#1E3A8A', // Bleu foncé
     fontWeight: 700,
     textAlign: 'center',
     marginBottom: 6,
+    fontFamily: 'Poppins',
+    letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 13,
-    color: '#4B6B57',
+    color: '#475569', // Gris bleuté
     marginTop: 4,
     textAlign: 'center',
+    letterSpacing: 0.3,
   },
   section: {
     marginTop: 16,
     padding: 14,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    borderColor: '#DDE7DA',
+    borderColor: '#E1E8ED',
     borderWidth: 1,
     borderLeftWidth: 3,
-    borderLeftColor: '#256D3A',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    borderLeftColor: '#3B82F6', // Bleu moderne
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
   },
   sectionTitle: {
     fontSize: 16,
-    color: '#256D3A', // primary
+    color: '#2563EB', // Bleu vif
     marginBottom: 10,
     fontWeight: 600,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8F5E9',
+    borderBottomColor: '#EFF6FF', // Bleu très pâle
     paddingBottom: 4,
   },
   row: {
@@ -155,16 +187,19 @@ const styles = StyleSheet.create({
   },
   // Nouveaux styles pour l'affichage des données
   dataCard: {
-    padding: 8,
-    borderRadius: 4,
-    backgroundColor: '#F6FAF7',
+    padding: 10,
+    borderRadius: 6,
+    backgroundColor: '#F8FAFF',
     borderLeftWidth: 2,
-    borderLeftColor: '#256D3A',
+    borderLeftColor: '#3B82F6',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    marginBottom: 4,
   },
   dataDate: {
     fontSize: 9,
-    color: '#587A66',
-    marginBottom: 3,
+    color: '#64748B',
+    marginBottom: 4,
+    fontWeight: 500,
   },
   dataDetails: {
     flexDirection: 'row',
@@ -172,60 +207,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dataValue: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 'bold',
-    color: '#1F5132',
+    color: '#1E40AF',
   },
   dataLabel: {
     fontSize: 10,
-    color: '#4B6B57',
+    color: '#475569',
+    fontWeight: 500,
   },
   dataTable: {
     width: '100%',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 6,
+    overflow: 'hidden',
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#EFF6FF',
     borderBottomWidth: 2,
-    borderBottomColor: '#256D3A',
-    padding: 8,
+    borderBottomColor: '#3B82F6',
+    padding: 10,
   },
   tableHeaderCell: {
     flex: 1,
     fontWeight: 'bold',
     fontSize: 10,
-    color: '#1F5132',
+    color: '#1E40AF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#F6FAF7',
-    padding: 6,
+    borderBottomColor: '#E2E8F0',
+    padding: 8,
   },
   tableRowEven: {
     backgroundColor: '#FFFFFF',
   },
   tableRowOdd: {
-    backgroundColor: '#F9FCFA',
+    backgroundColor: '#F8FAFF',
   },
   tableCell: {
-      flex: 1,
-      fontSize: 9,
-      color: '#4B6B57',
-    },
-    statusCell: {
-      borderRadius: 3,
-      padding: '2 4',
-      textAlign: 'center',
-    },
-    statusSuccess: {
-      backgroundColor: '#E8F5E9',
-      color: '#2E7D32',
-    },
-    statusPending: {
-      backgroundColor: '#FFF8E1',
-      color: '#F57F17',
-    },
+    flex: 1,
+    fontSize: 9,
+    color: '#334155',
+    padding: 2,
+  },
+  statusCell: {
+    borderRadius: 4,
+    padding: '3 6',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statusSuccess: {
+    backgroundColor: '#DCFCE7',
+    color: '#166534',
+  },
+  statusPending: {
+    backgroundColor: '#FEF3C7',
+    color: '#9A3412',
+  },
 });
 
 export type ExportPayload = {
@@ -261,12 +308,19 @@ interface Props {
 // Ajout de styles pour le pied de page
 const Footer = ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => (
   <View style={styles.footer} fixed>
-    <Text style={styles.footerText}>
-      HealthTrack - Rapport généré le {new Date().toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}
-    </Text>
-    <Text style={styles.footerText}>
-      Page {pageNumber} sur {totalPages}
-    </Text>
+    <View style={styles.footerContent}>
+      <Text style={styles.footerText}>
+        HealthTrack © {new Date().getFullYear()} - Rapport confidentiel
+      </Text>
+      <Text style={styles.footerText}>
+        Généré le {new Date().toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}
+      </Text>
+    </View>
+    <View style={styles.footerPageInfo}>
+      <Text style={styles.footerPageText}>
+        Page {pageNumber} sur {totalPages}
+      </Text>
+    </View>
   </View>
 );
 
