@@ -20,28 +20,29 @@ Font.register({
   ],
 });
 
-// Styles professionnels type document Word
+// Styles professionnels avec couleur verte et meilleur espacement
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     padding: 40,
-    paddingBottom: 60,
+    paddingBottom: 80,
     fontFamily: 'Times',
     fontSize: 11,
     lineHeight: 1.4,
     color: '#000000',
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    marginBottom: 30,
-    borderBottom: '1pt solid #2C5F9E',
-    paddingBottom: 15,
+    marginBottom: 35,
+    borderBottom: '1pt solid #256D3A',
+    paddingBottom: 20,
   },
   title: {
     fontSize: 24,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
-    color: '#2C5F9E',
-    marginBottom: 8,
+    color: '#256D3A',
+    marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
@@ -49,41 +50,43 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica',
     color: '#666666',
     textAlign: 'center',
-    marginBottom: 5,
+    marginBottom: 8,
   },
   metadata: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     fontSize: 9,
     color: '#888888',
-    marginTop: 10,
+    marginTop: 15,
+    paddingHorizontal: 10,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 30,
   },
   sectionTitle: {
     fontSize: 14,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
-    color: '#2C5F9E',
-    marginBottom: 12,
-    paddingBottom: 4,
+    color: '#256D3A',
+    marginBottom: 16,
+    paddingBottom: 6,
     borderBottom: '1pt solid #E0E0E0',
   },
   subsection: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   subsectionTitle: {
     fontSize: 12,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   table: {
     width: '100%',
     border: '1pt solid #E0E0E0',
-    marginBottom: 12,
+    marginBottom: 16,
+    marginTop: 8,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -91,12 +94,11 @@ const styles = StyleSheet.create({
     borderBottom: '1pt solid #E0E0E0',
   },
   tableHeaderCell: {
-    flex: 1,
-    padding: 8,
+    padding: 10,
     fontSize: 10,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
-    color: '#2C5F9E',
+    color: '#256D3A',
     borderRight: '1pt solid #E0E0E0',
   },
   tableRow: {
@@ -110,8 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   tableCell: {
-    flex: 1,
-    padding: 8,
+    padding: 10,
     fontSize: 9,
     borderRight: '1pt solid #E0E0E0',
   },
@@ -121,7 +122,8 @@ const styles = StyleSheet.create({
   profileGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 12,
+    marginTop: 8,
   },
   profileColumn: {
     width: '48%',
@@ -129,8 +131,9 @@ const styles = StyleSheet.create({
   dataRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
-    paddingVertical: 4,
+    marginBottom: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
   },
   dataLabel: {
     fontSize: 10,
@@ -146,10 +149,11 @@ const styles = StyleSheet.create({
   },
   list: {
     marginLeft: 15,
+    marginTop: 8,
   },
   listItem: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   bullet: {
     width: 10,
@@ -163,11 +167,12 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 20,
+    marginTop: 12,
   },
   statCard: {
     width: '23%',
-    padding: 10,
+    padding: 12,
     backgroundColor: '#F8F9FA',
     border: '1pt solid #E0E0E0',
     borderRadius: 2,
@@ -176,9 +181,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
-    color: '#2C5F9E',
+    color: '#256D3A',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   statLabel: {
     fontSize: 9,
@@ -187,14 +192,14 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 25,
     left: 40,
     right: 40,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTop: '1pt solid #E0E0E0',
-    paddingTop: 10,
+    paddingTop: 12,
   },
   footerText: {
     fontSize: 8,
@@ -204,15 +209,16 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: '#666666',
     backgroundColor: '#F8F9FA',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 2,
   },
   emptyState: {
-    padding: 20,
+    padding: 25,
     textAlign: 'center',
     backgroundColor: '#F8F9FA',
     border: '1pt dashed #E0E0E0',
+    marginTop: 12,
   },
   emptyStateText: {
     fontSize: 10,
@@ -224,19 +230,19 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     fontStyle: 'italic',
-    marginTop: 10,
-    padding: 8,
+    marginTop: 12,
+    padding: 10,
     backgroundColor: '#F8F9FA',
     border: '1pt solid #E0E0E0',
   },
   highlight: {
-    backgroundColor: '#FFF2CC',
+    backgroundColor: '#E8F5E8',
     padding: 2,
   },
   statusBadge: {
     fontSize: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 2,
     textAlign: 'center',
     fontWeight: 'bold',
@@ -248,6 +254,9 @@ const styles = StyleSheet.create({
   statusPending: {
     backgroundColor: '#FFF3CD',
     color: '#856404',
+  },
+  sectionSpacing: {
+    marginBottom: 25,
   },
 });
 
@@ -412,33 +421,33 @@ const SleepSection = ({ sommeil }: { sommeil: any[] }) => {
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Date</Text>
-          <Text style={styles.tableHeaderCell}>Durée (h)</Text>
-          <Text style={styles.tableHeaderCell}>Qualité</Text>
-          <Text style={[styles.tableHeaderCell, styles.tableCellLast]}>Heures de coucher/léver</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.8 }]}>Date</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Durée (h)</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 0.8 }]}>Qualité</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 2 }, styles.tableCellLast]}>Heures de coucher/léver</Text>
         </View>
         
-        {sommeil.slice(0, 15).map((s, index) => (
+        {sommeil.slice(0, 12).map((s, index) => (
           <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
-            <Text style={[styles.tableCell, { flex: 2 }]}>
+            <Text style={[styles.tableCell, { flex: 1.8 }]}>
               {new Date(s.date).toLocaleDateString('fr-FR', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric'
               })}
             </Text>
-            <Text style={styles.tableCell}>{s.dureeSommeil.toFixed(1)}</Text>
-            <Text style={styles.tableCell}>{s.qualiteSommeil}/5</Text>
-            <Text style={[styles.tableCell, styles.tableCellLast]}>
-              {s.heureCoucher || 'N/A'} - {s.heureReveil || 'N/A'}
+            <Text style={[styles.tableCell, { flex: 0.8 }]}>{s.dureeSommeil.toFixed(1)}</Text>
+            <Text style={[styles.tableCell, { flex: 0.8 }]}>{s.qualiteSommeil}/5</Text>
+            <Text style={[styles.tableCell, { flex: 2 }, styles.tableCellLast]}>
+              {s.heureCoucher || '--:--'} - {s.heureReveil || '--:--'}
             </Text>
           </View>
         ))}
       </View>
       
-      {sommeil.length > 15 && (
+      {sommeil.length > 12 && (
         <Text style={styles.continuationNotice}>
-          + {sommeil.length - 15} entrées supplémentaires non affichées
+          + {sommeil.length - 12} entrées supplémentaires non affichées
         </Text>
       )}
     </View>
@@ -464,32 +473,32 @@ const MealsSection = ({ repas }: { repas: any[] }) => {
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Date et heure</Text>
-          <Text style={styles.tableHeaderCell}>Type de repas</Text>
-          <Text style={styles.tableHeaderCell}>Calories</Text>
-          <Text style={[styles.tableHeaderCell, styles.tableCellLast]}>Description</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.6 }]}>Date et heure</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.2 }]}>Type de repas</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Calories</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.8 }, styles.tableCellLast]}>Description</Text>
         </View>
         
-        {repas.slice(0, 12).map((r, index) => (
+        {repas.slice(0, 10).map((r, index) => (
           <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
-            <Text style={[styles.tableCell, { flex: 1.5 }]}>
+            <Text style={[styles.tableCell, { flex: 1.6 }]}>
               {new Date(r.date).toLocaleDateString('fr-FR', {
                 day: '2-digit',
                 month: '2-digit'
               })} {r.heure || ''}
             </Text>
-            <Text style={styles.tableCell}>{r.typeRepas}</Text>
-            <Text style={styles.tableCell}>{r.calories || 0}</Text>
-            <Text style={[styles.tableCell, styles.tableCellLast]}>
+            <Text style={[styles.tableCell, { flex: 1.2 }]}>{r.typeRepas}</Text>
+            <Text style={[styles.tableCell, { flex: 1 }]}>{r.calories || 0}</Text>
+            <Text style={[styles.tableCell, { flex: 1.8 }, styles.tableCellLast]}>
               {r.description || r.aliments || 'Non spécifié'}
             </Text>
           </View>
         ))}
       </View>
       
-      {repas.length > 12 && (
+      {repas.length > 10 && (
         <Text style={styles.continuationNotice}>
-          + {repas.length - 12} repas supplémentaires non affichés
+          + {repas.length - 10} repas supplémentaires non affichés
         </Text>
       )}
     </View>
@@ -516,13 +525,13 @@ const ActivitiesSection = ({ activites }: { activites: any[] }) => {
       <View style={styles.table}>
         <View style={styles.tableHeader}>
           <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Date</Text>
-          <Text style={styles.tableHeaderCell}>Type d'activité</Text>
-          <Text style={styles.tableHeaderCell}>Durée (min)</Text>
-          <Text style={styles.tableHeaderCell}>Intensité</Text>
-          <Text style={[styles.tableHeaderCell, styles.tableCellLast]}>Calories brûlées</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Type d'activité</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Durée (min)</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Intensité</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Calories brûlées</Text>
         </View>
         
-        {activites.slice(0, 12).map((a, index) => (
+        {activites.slice(0, 10).map((a, index) => (
           <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
             <Text style={[styles.tableCell, { flex: 1.5 }]}>
               {new Date(a.date).toLocaleDateString('fr-FR', {
@@ -531,19 +540,19 @@ const ActivitiesSection = ({ activites }: { activites: any[] }) => {
                 year: 'numeric'
               })}
             </Text>
-            <Text style={styles.tableCell}>{a.typeActivite}</Text>
-            <Text style={styles.tableCell}>{parseInt(a.duree, 10)}</Text>
-            <Text style={styles.tableCell}>{a.intensite}</Text>
-            <Text style={[styles.tableCell, styles.tableCellLast]}>
-              {a.caloriesBrulees || 'N/A'}
+            <Text style={[styles.tableCell, { flex: 1.5 }]}>{a.typeActivite}</Text>
+            <Text style={[styles.tableCell, { flex: 1 }]}>{parseInt(a.duree, 10)}</Text>
+            <Text style={[styles.tableCell, { flex: 1 }]}>{a.intensite}</Text>
+            <Text style={[styles.tableCell, { flex: 1.2 }, styles.tableCellLast]}>
+              {a.caloriesBrulees || 0}
             </Text>
           </View>
         ))}
       </View>
       
-      {activites.length > 12 && (
+      {activites.length > 10 && (
         <Text style={styles.continuationNotice}>
-          + {activites.length - 12} activités supplémentaires non affichées
+          + {activites.length - 10} activités supplémentaires non affichées
         </Text>
       )}
     </View>
@@ -569,14 +578,14 @@ const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
       
       <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={styles.tableHeaderCell}>Type d'objectif</Text>
-          <Text style={styles.tableHeaderCell}>Valeur actuelle</Text>
-          <Text style={styles.tableHeaderCell}>Valeur cible</Text>
-          <Text style={styles.tableHeaderCell}>Période</Text>
-          <Text style={[styles.tableHeaderCell, styles.tableCellLast]}>Statut</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Type d'objectif</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Valeur actuelle</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Valeur cible</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.8 }]}>Période</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1 }, styles.tableCellLast]}>Statut</Text>
         </View>
         
-        {objectifs.slice(0, 10).map((o, index) => {
+        {objectifs.slice(0, 8).map((o, index) => {
           const actuel = typeof o.valeurActuelle === 'number' ? o.valeurActuelle.toFixed(1) : o.valeurActuelle;
           const cible = typeof o.valeurCible === 'number' ? o.valeurCible.toFixed(1) : o.valeurCible;
           const debut = new Date(o.dateDebut).toLocaleDateString('fr-FR', {
@@ -596,11 +605,11 @@ const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
           
           return (
             <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
-              <Text style={styles.tableCell}>{o.type}</Text>
-              <Text style={styles.tableCell}>{actuel}</Text>
-              <Text style={styles.tableCell}>{cible}</Text>
-              <Text style={styles.tableCell}>{debut} - {fin}</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}>
+              <Text style={[styles.tableCell, { flex: 1.5 }]}>{o.type}</Text>
+              <Text style={[styles.tableCell, { flex: 1 }]}>{actuel}</Text>
+              <Text style={[styles.tableCell, { flex: 1 }]}>{cible}</Text>
+              <Text style={[styles.tableCell, { flex: 1.8 }]}>{debut} - {fin}</Text>
+              <Text style={[styles.tableCell, { flex: 1 }, styles.tableCellLast]}>
                 <Text style={[styles.statusBadge, isCompleted ? styles.statusCompleted : styles.statusPending]}>
                   {isCompleted ? 'ATTEINT' : 'EN COURS'}
                 </Text>
@@ -610,9 +619,9 @@ const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
         })}
       </View>
       
-      {objectifs.length > 10 && (
+      {objectifs.length > 8 && (
         <Text style={styles.continuationNotice}>
-          + {objectifs.length - 10} objectifs supplémentaires non affichés
+          + {objectifs.length - 8} objectifs supplémentaires non affichés
         </Text>
       )}
     </View>
@@ -628,11 +637,17 @@ export const UserReport: React.FC<Props> = ({ data, periodLabel }) => {
       <Page size="A4" style={styles.page}>
         <Footer pageNumber={1} totalPages={1} />
         <Header user={user} periodLabel={periodLabel} meta={meta} />
+        <View style={styles.sectionSpacing} />
         <ProfileSection user={user} />
+        <View style={styles.sectionSpacing} />
         <SummaryStats data={data} />
+        <View style={styles.sectionSpacing} />
         <SleepSection sommeil={sommeil} />
+        <View style={styles.sectionSpacing} />
         <MealsSection repas={repas} />
+        <View style={styles.sectionSpacing} />
         <ActivitiesSection activites={activites} />
+        <View style={styles.sectionSpacing} />
         <GoalsSection objectifs={objectifs} />
       </Page>
     </Document>
