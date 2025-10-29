@@ -61,15 +61,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   section: {
-    marginBottom: 25,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 14,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
     color: '#256D3A',
-    marginBottom: 12,
-    paddingBottom: 6,
+    marginBottom: 10,
+    paddingBottom: 4,
     borderBottom: '1pt solid #E0E0E0',
   },
   table: {
@@ -84,8 +84,8 @@ const styles = StyleSheet.create({
     borderBottom: '1pt solid #E0E0E0',
   },
   tableHeaderCell: {
-    padding: 8,
-    fontSize: 9,
+    padding: 6,
+    fontSize: 8,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
     color: '#256D3A',
@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   tableCell: {
-    padding: 8,
-    fontSize: 8,
+    padding: 6,
+    fontSize: 7,
     borderRight: '1pt solid #E0E0E0',
   },
   tableCellLast: {
@@ -121,45 +121,45 @@ const styles = StyleSheet.create({
   dataRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
-    paddingVertical: 6,
+    marginBottom: 6,
+    paddingVertical: 4,
     paddingHorizontal: 4,
   },
   dataLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
     color: '#555555',
     width: '40%',
   },
   dataValue: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#000000',
     width: '58%',
   },
   statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
-    marginTop: 12,
+    marginBottom: 15,
+    marginTop: 10,
   },
   statCard: {
     width: '23%',
-    padding: 12,
+    padding: 10,
     backgroundColor: '#F8F9FA',
     border: '1pt solid #E0E0E0',
     borderRadius: 2,
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
     color: '#256D3A',
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   statLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#666666',
     textAlign: 'center',
   },
@@ -172,47 +172,47 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTop: '1pt solid #E0E0E0',
-    paddingTop: 12,
+    paddingTop: 10,
   },
   footerText: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#666666',
   },
   pageNumber: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#666666',
     backgroundColor: '#F8F9FA',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 2,
   },
   emptyState: {
-    padding: 20,
+    padding: 15,
     textAlign: 'center',
     backgroundColor: '#F8F9FA',
     border: '1pt dashed #E0E0E0',
     marginTop: 8,
   },
   emptyStateText: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#666666',
     fontStyle: 'italic',
   },
   continuationNotice: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#666666',
     textAlign: 'center',
     fontStyle: 'italic',
-    marginTop: 8,
-    padding: 8,
+    marginTop: 6,
+    padding: 6,
     backgroundColor: '#F8F9FA',
     border: '1pt solid #E0E0E0',
   },
   statusBadge: {
-    fontSize: 7,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 2,
+    fontSize: 6,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 1,
     textAlign: 'center',
     fontWeight: 'bold',
   },
@@ -225,12 +225,12 @@ const styles = StyleSheet.create({
     color: '#856404',
   },
   notesText: {
-    fontSize: 7,
+    fontSize: 6,
     color: '#666666',
     fontStyle: 'italic',
   },
   sectionSpacing: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
 });
 
@@ -376,9 +376,12 @@ const SummaryStats = ({ data }: { data: ExportPayload }) => (
   </View>
 );
 
-// Composants de sections modulaires pour permettre la pagination
-const SleepSection = ({ sommeil, isContinuation = false }: { sommeil: any[]; isContinuation?: boolean }) => {
+// Composants de sections modulaires avec données limitées
+const SleepSection = ({ sommeil, isContinuation = false, maxRows = 10 }: { sommeil: any[]; isContinuation?: boolean; maxRows?: number }) => {
   if (sommeil.length === 0) return null;
+
+  const displayData = maxRows ? sommeil.slice(0, maxRows) : sommeil;
+  const hasMore = maxRows && sommeil.length > maxRows;
 
   return (
     <View style={styles.section}>
@@ -396,7 +399,7 @@ const SleepSection = ({ sommeil, isContinuation = false }: { sommeil: any[]; isC
           <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Notes</Text>
         </View>
         
-        {sommeil.map((s, index) => (
+        {displayData.map((s, index) => (
           <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
             <Text style={[styles.tableCell, { flex: 1.2 }]}>
               {new Date(s.date).toLocaleDateString('fr-FR', {
@@ -417,12 +420,21 @@ const SleepSection = ({ sommeil, isContinuation = false }: { sommeil: any[]; isC
           </View>
         ))}
       </View>
+      
+      {hasMore && (
+        <Text style={styles.continuationNotice}>
+          + {sommeil.length - maxRows} entrées supplémentaires sur la page suivante
+        </Text>
+      )}
     </View>
   );
 };
 
-const MealsSection = ({ repas, isContinuation = false }: { repas: any[]; isContinuation?: boolean }) => {
+const MealsSection = ({ repas, isContinuation = false, maxRows = 8 }: { repas: any[]; isContinuation?: boolean; maxRows?: number }) => {
   if (repas.length === 0) return null;
+
+  const displayData = maxRows ? repas.slice(0, maxRows) : repas;
+  const hasMore = maxRows && repas.length > maxRows;
 
   return (
     <View style={styles.section}>
@@ -439,7 +451,7 @@ const MealsSection = ({ repas, isContinuation = false }: { repas: any[]; isConti
           <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Notes</Text>
         </View>
         
-        {repas.map((r, index) => {
+        {displayData.map((r, index) => {
           let alimentsText = 'Non spécifié';
           if (Array.isArray(r.aliments)) {
             alimentsText = r.aliments.join(', ');
@@ -474,12 +486,21 @@ const MealsSection = ({ repas, isContinuation = false }: { repas: any[]; isConti
           );
         })}
       </View>
+      
+      {hasMore && (
+        <Text style={styles.continuationNotice}>
+          + {repas.length - maxRows} repas supplémentaires sur la page suivante
+        </Text>
+      )}
     </View>
   );
 };
 
-const ActivitiesSection = ({ activites, isContinuation = false }: { activites: any[]; isContinuation?: boolean }) => {
+const ActivitiesSection = ({ activites, isContinuation = false, maxRows = 8 }: { activites: any[]; isContinuation?: boolean; maxRows?: number }) => {
   if (activites.length === 0) return null;
+
+  const displayData = maxRows ? activites.slice(0, maxRows) : activites;
+  const hasMore = maxRows && activites.length > maxRows;
 
   return (
     <View style={styles.section}>
@@ -496,7 +517,7 @@ const ActivitiesSection = ({ activites, isContinuation = false }: { activites: a
           <Text style={[styles.tableHeaderCell, { flex: 1.2 }, styles.tableCellLast]}>Notes</Text>
         </View>
         
-        {activites.map((a, index) => (
+        {displayData.map((a, index) => (
           <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
             <Text style={[styles.tableCell, { flex: 1 }]}>
               {new Date(a.date).toLocaleDateString('fr-FR', {
@@ -516,12 +537,21 @@ const ActivitiesSection = ({ activites, isContinuation = false }: { activites: a
           </View>
         ))}
       </View>
+      
+      {hasMore && (
+        <Text style={styles.continuationNotice}>
+          + {activites.length - maxRows} activités supplémentaires sur la page suivante
+        </Text>
+      )}
     </View>
   );
 };
 
-const GoalsSection = ({ objectifs, isContinuation = false }: { objectifs: any[]; isContinuation?: boolean }) => {
+const GoalsSection = ({ objectifs, isContinuation = false, maxRows = 8 }: { objectifs: any[]; isContinuation?: boolean; maxRows?: number }) => {
   if (objectifs.length === 0) return null;
+
+  const displayData = maxRows ? objectifs.slice(0, maxRows) : objectifs;
+  const hasMore = maxRows && objectifs.length > maxRows;
 
   return (
     <View style={styles.section}>
@@ -538,7 +568,7 @@ const GoalsSection = ({ objectifs, isContinuation = false }: { objectifs: any[];
           <Text style={[styles.tableHeaderCell, { flex: 1 }, styles.tableCellLast]}>Statut</Text>
         </View>
         
-        {objectifs.map((o, index) => {
+        {displayData.map((o, index) => {
           const actuel = typeof o.valeurActuelle === 'number' ? o.valeurActuelle.toFixed(1) : o.valeurActuelle || 'N/A';
           const cible = typeof o.valeurCible === 'number' ? o.valeurCible.toFixed(1) : o.valeurCible || 'N/A';
           const debut = o.dateDebut ? new Date(o.dateDebut).toLocaleDateString('fr-FR', {
@@ -571,6 +601,12 @@ const GoalsSection = ({ objectifs, isContinuation = false }: { objectifs: any[];
           );
         })}
       </View>
+      
+      {hasMore && (
+        <Text style={styles.continuationNotice}>
+          + {objectifs.length - maxRows} objectifs supplémentaires sur la page suivante
+        </Text>
+      )}
     </View>
   );
 };
@@ -580,8 +616,8 @@ const paginateContent = (data: ExportPayload, periodLabel?: string) => {
   const pages: JSX.Element[] = [];
   const { user, sommeil, repas, activites, objectifs, meta } = data;
 
-  // Première page avec header, profil et stats
-  const firstPageContent: JSX.Element[] = [
+  // Contenu de base de la première page
+  const baseContent = [
     <Header key="header" user={user} periodLabel={periodLabel} meta={meta} />,
     <View key="spacing1" style={styles.sectionSpacing} />,
     <ProfileSection key="profile" user={user} />,
@@ -590,47 +626,15 @@ const paginateContent = (data: ExportPayload, periodLabel?: string) => {
     <View key="spacing3" style={styles.sectionSpacing} />
   ];
 
-  // Toutes les données à afficher (sans les sections vides)
-  const allDataSections: { type: string; data: any[]; component: JSX.Element }[] = [];
+  // Vérifier s'il y a des données
+  const hasData = sommeil.length > 0 || repas.length > 0 || activites.length > 0 || objectifs.length > 0;
 
-  if (sommeil.length > 0) {
-    allDataSections.push({
-      type: 'sleep',
-      data: sommeil,
-      component: <SleepSection key="sleep" sommeil={sommeil} />
-    });
-  }
-
-  if (repas.length > 0) {
-    allDataSections.push({
-      type: 'meals',
-      data: repas,
-      component: <MealsSection key="meals" repas={repas} />
-    });
-  }
-
-  if (activites.length > 0) {
-    allDataSections.push({
-      type: 'activities',
-      data: activites,
-      component: <ActivitiesSection key="activities" activites={activites} />
-    });
-  }
-
-  if (objectifs.length > 0) {
-    allDataSections.push({
-      type: 'goals',
-      data: objectifs,
-      component: <GoalsSection key="goals" objectifs={objectifs} />
-    });
-  }
-
-  // Si aucune donnée, créer une page avec message vide
-  if (allDataSections.length === 0) {
+  if (!hasData) {
+    // Page unique sans données
     pages.push(
       <Page key="page-1" size="A4" style={styles.page}>
         <Footer pageNumber={1} totalPages={1} />
-        {firstPageContent}
+        {baseContent}
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateText}>
             Aucune donnée de suivi disponible pour cette période
@@ -641,63 +645,105 @@ const paginateContent = (data: ExportPayload, periodLabel?: string) => {
     return pages;
   }
 
-  // Essayer de tout mettre sur la première page
-  const firstPageSections = [...firstPageContent];
-  let currentPageSections = [...firstPageSections];
-  let currentPageNumber = 1;
+  // Essayer de tout mettre sur une seule page d'abord
+  const firstPageContent = [...baseContent];
 
-  // Ajouter les sections de données à la première page
-  for (const section of allDataSections) {
-    currentPageSections.push(section.component);
-    currentPageSections.push(<View key={`spacing-${section.type}`} style={styles.sectionSpacing} />);
+  // Ajouter toutes les sections complètes sur la première page
+  if (sommeil.length > 0) {
+    firstPageContent.push(<SleepSection key="sleep" sommeil={sommeil} />);
+    firstPageContent.push(<View key="spacing-sleep" style={styles.sectionSpacing} />);
   }
 
-  // Vérifier si tout tient sur une page (estimation)
-  // Si c'est trop long, on va diviser en plusieurs pages
-  const estimatedFirstPageHeight = firstPageSections.length * 100 + allDataSections.length * 200;
+  if (repas.length > 0) {
+    firstPageContent.push(<MealsSection key="meals" repas={repas} />);
+    firstPageContent.push(<View key="spacing-meals" style={styles.sectionSpacing} />);
+  }
+
+  if (activites.length > 0) {
+    firstPageContent.push(<ActivitiesSection key="activities" activites={activites} />);
+    firstPageContent.push(<View key="spacing-activities" style={styles.sectionSpacing} />);
+  }
+
+  if (objectifs.length > 0) {
+    firstPageContent.push(<GoalsSection key="goals" objectifs={objectifs} />);
+  }
+
+  // Estimation simple : si on a beaucoup de données, on divise
+  const totalRows = sommeil.length + repas.length + activites.length + objectifs.length;
   
-  if (estimatedFirstPageHeight > 600) { // Si estimation dépasse la capacité d'une page
-    // Réinitialiser pour la pagination correcte
-    currentPageSections = [...firstPageSections];
-    
-    // Ajouter progressivement les sections jusqu'à remplir la première page
-    for (let i = 0; i < allDataSections.length; i++) {
-      const section = allDataSections[i];
-      currentPageSections.push(section.component);
-      if (i < allDataSections.length - 1) {
-        currentPageSections.push(<View key={`spacing-${section.type}`} style={styles.sectionSpacing} />);
-      }
-      
-      // Si on dépasse une certaine limite, créer une nouvelle page
-      if (i === Math.floor(allDataSections.length / 2) - 1) {
-        pages.push(
-          <Page key={`page-${currentPageNumber}`} size="A4" style={styles.page}>
-            <Footer pageNumber={currentPageNumber} totalPages={2} />
-            {currentPageSections}
-          </Page>
-        );
-        currentPageNumber++;
-        currentPageSections = [];
-      }
-    }
-    
-    // Ajouter la dernière page si elle contient des sections
-    if (currentPageSections.length > 0) {
-      pages.push(
-        <Page key={`page-${currentPageNumber}`} size="A4" style={styles.page}>
-          <Footer pageNumber={currentPageNumber} totalPages={currentPageNumber} />
-          {currentPageSections}
-        </Page>
-      );
-    }
-  } else {
-    // Tout tient sur une seule page
+  if (totalRows <= 20) {
+    // Tout tient sur une page
     pages.push(
       <Page key="page-1" size="A4" style={styles.page}>
         <Footer pageNumber={1} totalPages={1} />
-        {currentPageSections}
+        {firstPageContent}
       </Page>
     );
+  } else {
+    // Diviser en deux pages
+    const firstPageSections = [...baseContent];
+    const secondPageSections: JSX.Element[] = [];
+
+    // Sur la première page : toutes les sections mais avec moins de lignes
+    if (sommeil.length > 0) {
+      firstPageSections.push(<SleepSection key="sleep" sommeil={sommeil} maxRows={6} />);
+      firstPageSections.push(<View key="spacing-sleep" style={styles.sectionSpacing} />);
+    }
+
+    if (repas.length > 0) {
+      firstPageSections.push(<MealsSection key="meals" repas={repas} maxRows={5} />);
+      firstPageSections.push(<View key="spacing-meals" style={styles.sectionSpacing} />);
+    }
+
+    if (activites.length > 0) {
+      firstPageSections.push(<ActivitiesSection key="activities" activites={activites} maxRows={5} />);
+    }
+
+    // Sur la deuxième page : les données restantes
+    if (sommeil.length > 6) {
+      secondPageSections.push(<SleepSection key="sleep-cont" sommeil={sommeil.slice(6)} isContinuation={true} />);
+      secondPageSections.push(<View key="spacing-sleep-cont" style={styles.sectionSpacing} />);
+    }
+
+    if (repas.length > 5) {
+      secondPageSections.push(<MealsSection key="meals-cont" repas={repas.slice(5)} isContinuation={true} />);
+      secondPageSections.push(<View key="spacing-meals-cont" style={styles.sectionSpacing} />);
+    }
+
+    if (activites.length > 5) {
+      secondPageSections.push(<ActivitiesSection key="activities-cont" activites={activites.slice(5)} isContinuation={true} />);
+      secondPageSections.push(<View key="spacing-activities-cont" style={styles.sectionSpacing} />);
+    }
+
+    if (objectifs.length > 0) {
+      secondPageSections.push(<GoalsSection key="goals" objectifs={objectifs} />);
+    }
+
+    // Créer les pages
+    pages.push(
+      <Page key="page-1" size="A4" style={styles.page}>
+        <Footer pageNumber={1} totalPages={2} />
+        {firstPageSections}
+      </Page>
+    );
+
+    if (secondPageSections.length > 0) {
+      pages.push(
+        <Page key="page-2" size="A4" style={styles.page}>
+          <Footer pageNumber={2} totalPages={2} />
+          {secondPageSections}
+        </Page>
+      );
+    } else {
+      // Si la deuxième page est vide, corriger la pagination
+      pages[0] = React.cloneElement(pages[0], {
+        children: React.Children.map(pages[0].props.children, child => 
+          child && child.type === Footer 
+            ? React.cloneElement(child, { pageNumber: 1, totalPages: 1 })
+            : child
+        )
+      });
+    }
   }
 
   return pages;
