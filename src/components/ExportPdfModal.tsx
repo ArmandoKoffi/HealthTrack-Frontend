@@ -56,27 +56,80 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o ? onClose() : undefined}>
-      <DialogContent className="w-full max-w-[96vw] sm:max-w-[95vw] lg:max-w-[95vw] max-h-[98vh] sm:max-h-[98vh] lg:max-h-[98vh] my-[1vh] mx-[2vw] p-0 flex flex-col">
-        <DialogHeader className="px-4 pt-4 flex-shrink-0">
-          <DialogTitle>Prévisualisation du PDF</DialogTitle>
-          <DialogDescription>Prévisualisation du PDF généré avant téléchargement ou impression</DialogDescription>
+      <DialogContent className="w-[95vw] h-[95vh] max-w-none max-h-none m-0 p-0 flex flex-col bg-background border-0 shadow-2xl">
+        {/* Override pour positionner le modal avec des marges */}
+        <style>{`
+          @media (max-width: 768px) {
+            [data-radix-dialog-content] {
+              width: 98vw !important;
+              height: 98vh !important;
+              margin: 1vh 1vw !important;
+            }
+          }
+          @media (min-width: 769px) {
+            [data-radix-dialog-content] {
+              width: 95vw !important;
+              height: 95vh !important;
+              margin: 2.5vh 2.5vw !important;
+            }
+          }
+        `}</style>
+        
+        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b bg-card">
+          <DialogTitle className="text-xl font-bold">Prévisualisation du PDF</DialogTitle>
+          <DialogDescription className="text-base">
+            Prévisualisation du PDF généré avant téléchargement ou impression
+          </DialogDescription>
         </DialogHeader>
-        <div className="px-4 pb-4 flex flex-col gap-3 flex-grow overflow-hidden">
-          <div className="w-full flex-grow border rounded-md overflow-hidden bg-white" style={{ minHeight: 0 }}>
+        
+        <div className="flex-grow overflow-hidden p-6 pt-4 bg-card">
+          <div className="w-full h-full border-2 border-border rounded-lg overflow-hidden bg-white shadow-sm">
             {documentNode ? (
-              <PDFViewer width="100%" height="100%" showToolbar={true} style={{ display: 'flex', flexDirection: 'column' }}>
+              <PDFViewer 
+                width="100%" 
+                height="100%" 
+                showToolbar={true}
+                className="min-h-0"
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  border: 'none',
+                  borderRadius: '0.375rem'
+                }}
+              >
                 {documentNode}
               </PDFViewer>
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-lg">
                 Aucune donnée à prévisualiser
               </div>
             )}
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 justify-end flex-shrink-0">
-            <Button variant="outline" onClick={handleDownload}>Télécharger le PDF</Button>
-            <Button variant="outline" onClick={handlePrintPdf}>Imprimer le PDF</Button>
-            <Button variant="default" onClick={onClose}>Fermer</Button>
+        </div>
+        
+        <div className="flex-shrink-0 border-t bg-card px-6 py-4">
+          <div className="flex flex-col sm:flex-row gap-3 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={handleDownload}
+              className="min-w-[160px]"
+            >
+              Télécharger le PDF
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handlePrintPdf}
+              className="min-w-[140px]"
+            >
+              Imprimer le PDF
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={onClose}
+              className="min-w-[100px]"
+            >
+              Fermer
+            </Button>
           </div>
         </div>
       </DialogContent>
