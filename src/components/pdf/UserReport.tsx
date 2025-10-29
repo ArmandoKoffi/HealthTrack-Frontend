@@ -1,24 +1,21 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font, Svg, Path } from '@react-pdf/renderer';
 
-// Enregistrement des polices pour améliorer la typographie
+// Utilisation de polices système sûres pour éviter les problèmes de chargement
 Font.register({
-  family: 'Inter',
+  family: 'Helvetica',
   fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.ttf', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hjp-Ek-_EeA.ttf', fontWeight: 500 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.ttf', fontWeight: 600 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hjp-Ek-_EeA.ttf', fontWeight: 700 },
+    { src: 'Helvetica' },
+    { src: 'Helvetica-Bold', fontWeight: 700 },
   ],
 });
 
 // Police pour les titres
 Font.register({
-  family: 'Poppins',
+  family: 'Times-Roman',
   fonts: [
-    { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfedw.ttf', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLEj6Z1xlEA.ttf', fontWeight: 600 },
-    { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlEA.ttf', fontWeight: 700 },
+    { src: 'Times-Roman' },
+    { src: 'Times-Bold', fontWeight: 700 },
   ],
 });
 
@@ -29,7 +26,7 @@ const styles = StyleSheet.create({
     padding: 30,
     paddingBottom: 50, // Espace pour le pied de page
     backgroundColor: '#F9FAFC', // Fond légèrement bleuté pour un aspect corporate
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
   },
   headerInfoContainer: {
     flexDirection: 'row',
@@ -95,7 +92,7 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     textAlign: 'center',
     marginBottom: 6,
-    fontFamily: 'Poppins',
+    fontFamily: 'Times-Roman',
     letterSpacing: 0.5,
   },
   subtitle: {
