@@ -56,7 +56,7 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o ? onClose() : undefined}>
-      <DialogContent className="w-full max-w-[92vw] sm:max-w-[85vw] lg:max-w-[75vw] max-h-[94vh] sm:max-h-[94vh] lg:max-h-[94vh] m-[3vh] p-0 flex flex-col">
+      <DialogContent className="w-full max-w-[96vw] sm:max-w-[95vw] lg:max-w-[95vw] max-h-[96vh] sm:max-h-[96vh] lg:max-h-[96vh] m-[2vh] p-0 flex flex-col">
         <DialogHeader className="px-4 pt-4 flex-shrink-0">
           <DialogTitle>Prévisualisation du PDF</DialogTitle>
           <DialogDescription>Prévisualisation du PDF généré avant téléchargement ou impression</DialogDescription>
