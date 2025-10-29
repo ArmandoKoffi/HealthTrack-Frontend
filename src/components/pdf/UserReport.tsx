@@ -14,6 +14,7 @@ Font.register({
 // Styles professionnels pour le PDF
 const styles = StyleSheet.create({
   page: {
+    flexDirection: 'column',
     padding: 30,
     paddingBottom: 50, // Espace pour le pied de page
     backgroundColor: '#FAFCFA', // Fond légèrement teinté pour un aspect premium
@@ -276,10 +277,10 @@ export const UserReport: React.FC<Props> = ({ data, periodLabel }) => {
       <Page 
         size="A4" 
         style={styles.page}
-        render={({ pageNumber, totalPages }) => (
-          <Footer pageNumber={pageNumber} totalPages={totalPages} />
-        )}
       >
+        <View render={({ pageNumber, totalPages }) => (
+          <Footer pageNumber={pageNumber} totalPages={totalPages} />
+        )} fixed />
         <View style={styles.header} fixed>
           <View style={styles.logoContainer}>
             <Svg width="30" height="30" viewBox="0 0 24 24">
