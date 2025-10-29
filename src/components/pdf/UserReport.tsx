@@ -178,14 +178,6 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: '#666666',
   },
-  pageNumber: {
-    fontSize: 7,
-    color: '#666666',
-    backgroundColor: '#F8F9FA',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 2,
-  },
   emptyState: {
     padding: 15,
     textAlign: 'center',
@@ -264,15 +256,12 @@ interface Props {
   periodLabel?: string;
 }
 
-// Composant Footer professionnel avec pagination dynamique
-const Footer = ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => (
+// Composant Footer professionnel sans pagination
+const Footer = () => (
   <View style={styles.footer} fixed>
     <Text style={styles.footerText}>
       HealthTrack - Rapport confidentiel - Généré le {new Date().toLocaleDateString('fr-FR')}
     </Text>
-    <View style={styles.pageNumber}>
-      <Text>{pageNumber} / {totalPages}</Text>
-    </View>
     <Text style={styles.footerText}>
       Document généré automatiquement
     </Text>
@@ -633,7 +622,7 @@ const paginateContent = (data: ExportPayload, periodLabel?: string) => {
     // Page unique sans données
     pages.push(
       <Page key="page-1" size="A4" style={styles.page}>
-        <Footer pageNumber={1} totalPages={1} />
+        <Footer />
         {baseContent}
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateText}>
@@ -645,17 +634,11 @@ const paginateContent = (data: ExportPayload, periodLabel?: string) => {
     return pages;
   }
 
-  // Calculer le nombre total de pages nécessaires
-  let totalPages = 1;
-  
   // Estimation basée sur le nombre total de lignes
   const totalRows = sommeil.length + repas.length + activites.length + objectifs.length;
-  if (totalRows > 20) {
-    totalPages = 2;
-  }
-
+  
   // Si une seule page suffit
-  if (totalPages === 1) {
+  if (totalRows <= 20) {
     const pageContent = [...baseContent];
     
     if (sommeil.length > 0) {
@@ -679,7 +662,7 @@ const paginateContent = (data: ExportPayload, periodLabel?: string) => {
 
     pages.push(
       <Page key="page-1" size="A4" style={styles.page}>
-        <Footer pageNumber={1} totalPages={1} />
+        <Footer />
         {pageContent}
       </Page>
     );
@@ -723,17 +706,17 @@ const paginateContent = (data: ExportPayload, periodLabel?: string) => {
       secondPageContent.push(<GoalsSection key="goals" objectifs={objectifs} />);
     }
 
-    // Créer les pages avec la pagination correcte
+    // Créer les pages sans numérotation
     pages.push(
       <Page key="page-1" size="A4" style={styles.page}>
-        <Footer pageNumber={1} totalPages={2} />
+        <Footer />
         {firstPageContent}
       </Page>
     );
 
     pages.push(
       <Page key="page-2" size="A4" style={styles.page}>
-        <Footer pageNumber={2} totalPages={2} />
+        <Footer />
         {secondPageContent}
       </Page>
     );
