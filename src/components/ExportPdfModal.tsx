@@ -56,15 +56,15 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o ? onClose() : undefined}>
-      <DialogContent className="w-full max-w-[88vw] sm:max-w-[80vw] lg:max-w-[65vw] max-h-[90vh] sm:max-h-[88vh] lg:max-h-[85vh] p-0">
-        <DialogHeader className="px-4 pt-4">
+      <DialogContent className="w-full max-w-[88vw] sm:max-w-[80vw] lg:max-w-[65vw] max-h-[90vh] sm:max-h-[88vh] lg:max-h-[85vh] p-0 flex flex-col">
+        <DialogHeader className="px-4 pt-4 flex-shrink-0">
           <DialogTitle>Prévisualisation du PDF</DialogTitle>
           <DialogDescription>Prévisualisation du PDF généré avant téléchargement ou impression</DialogDescription>
         </DialogHeader>
-        <div className="px-4 pb-4 flex flex-col gap-3">
-          <div className="w-full h-[70vh] sm:h-[75vh] lg:h-[80vh] border rounded-md overflow-hidden bg-white">
+        <div className="px-4 pb-4 flex flex-col gap-3 flex-grow overflow-hidden">
+          <div className="w-full flex-grow border rounded-md overflow-hidden bg-white" style={{ minHeight: 0 }}>
             {documentNode ? (
-              <PDFViewer width="100%" height="100%" showToolbar={true}>
+              <PDFViewer width="100%" height="100%" showToolbar={true} style={{ display: 'flex', flexDirection: 'column' }}>
                 {documentNode}
               </PDFViewer>
             ) : (
@@ -73,7 +73,7 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
               </div>
             )}
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 justify-end">
+          <div className="flex flex-col sm:flex-row gap-2 justify-end flex-shrink-0">
             <Button variant="outline" onClick={handleDownload}>Télécharger le PDF</Button>
             <Button variant="outline" onClick={handlePrintPdf}>Imprimer le PDF</Button>
             <Button variant="default" onClick={onClose}>Fermer</Button>
