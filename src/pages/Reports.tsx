@@ -19,8 +19,7 @@ import {
   Utensils,
   BarChart3,
   PieChart,
-  Share,
-  Printer
+  Share
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -283,43 +282,6 @@ export default function Reports() {
     }
   };
 
-  const printReport = async () => {
-    window.print();
-    try {
-      const { startDateStr, endDateStr } = getDateRangeForPeriod();
-      const res = await exportService.getUserData({ startDate: startDateStr, endDate: endDateStr });
-      if (res.success && res.data) {
-        const periodLabel = getPeriodLabel();
-        const doc = <UserReport data={res.data} periodLabel={periodLabel} />;
-        const blob = await pdf(doc).toBlob();
-        const url = URL.createObjectURL(blob);
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0';
-        iframe.style.bottom = '0';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.style.border = '0';
-        iframe.src = url;
-        document.body.appendChild(iframe);
-        iframe.onload = () => {
-          try {
-            iframe.contentWindow?.focus();
-            iframe.contentWindow?.print();
-          } finally {
-            setTimeout(() => {
-              document.body.removeChild(iframe);
-              URL.revokeObjectURL(url);
-            }, 1000);
-          }
-        };
-      }
-    } catch (e) {
-      // Ignorer erreur d'impression PDF
-    }
-    toast({ title: 'Impression lancée', description: 'Votre rapport va être imprimé' });
-  };
-
   const getPeriodLabel = () => {
     const labels = {
       week: 'Cette semaine',
@@ -353,11 +315,6 @@ export default function Reports() {
                 <Share className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Partager</span>
                 <span className="sm:hidden">Share</span>
-              </Button>
-              <Button variant="outline" onClick={printReport} className="w-full sm:w-auto">
-                <Printer className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Imprimer</span>
-                <span className="sm:hidden">Print</span>
               </Button>
             </div>
           </div>
