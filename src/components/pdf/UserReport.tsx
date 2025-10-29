@@ -1,298 +1,253 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Font, Svg, Path } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Font, Link } from '@react-pdf/renderer';
 
-// Utilisation de polices système sûres pour éviter les problèmes de chargement
+// Utilisation de polices professionnelles
 Font.register({
   family: 'Helvetica',
   fonts: [
     { src: 'Helvetica' },
-    { src: 'Helvetica-Bold', fontWeight: 700 },
+    { src: 'Helvetica-Bold', fontWeight: 'bold' },
+    { src: 'Helvetica-Oblique', fontWeight: 'normal', fontStyle: 'italic' },
   ],
 });
 
-// Police pour les titres
 Font.register({
-  family: 'Times-Roman',
+  family: 'Times',
   fonts: [
     { src: 'Times-Roman' },
-    { src: 'Times-Bold', fontWeight: 700 },
+    { src: 'Times-Bold', fontWeight: 'bold' },
+    { src: 'Times-Italic', fontWeight: 'normal', fontStyle: 'italic' },
   ],
 });
 
-// Styles professionnels pour le PDF
+// Styles professionnels type document Word
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
-    padding: 30,
-    paddingBottom: 50, // Espace pour le pied de page
-    backgroundColor: '#F9FAFC', // Fond légèrement bleuté pour un aspect corporate
-    fontFamily: 'Helvetica',
-  },
-  headerInfoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 30,
-    right: 30,
-    borderTopWidth: 1,
-    borderTopColor: '#E1E8ED',
-    paddingTop: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  footerContent: {
-    flexDirection: 'column',
-  },
-  footerText: {
-    fontSize: 8,
-    color: '#5A6B7B',
-    marginBottom: 2,
-  },
-  footerPageInfo: {
-    backgroundColor: '#EFF6FF',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-  },
-  footerPageText: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#3B82F6',
+    padding: 40,
+    paddingBottom: 60,
+    fontFamily: 'Times',
+    fontSize: 11,
+    lineHeight: 1.4,
+    color: '#000000',
   },
   header: {
-    marginBottom: 20,
-    padding: 16,
-    backgroundColor: '#FFFFFF', // Fond blanc pour un aspect épuré
-    borderRadius: 8,
-    borderBottomWidth: 3,
-    borderBottomColor: '#3B82F6', // Bleu moderne
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderTopWidth: 1,
-    borderLeftColor: '#E1E8ED',
-    borderRightColor: '#E1E8ED',
-    borderTopColor: '#E1E8ED',
-    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.05)',
+    marginBottom: 30,
+    borderBottom: '1pt solid #2C5F9E',
+    paddingBottom: 15,
   },
   title: {
-    fontSize: 26,
-    color: '#1E3A8A', // Bleu foncé
-    fontWeight: 700,
+    fontSize: 24,
+    fontFamily: 'Helvetica',
+    fontWeight: 'bold',
+    color: '#2C5F9E',
+    marginBottom: 8,
     textAlign: 'center',
-    marginBottom: 6,
-    fontFamily: 'Times-Roman',
-    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#475569', // Gris bleuté
-    marginTop: 4,
+    fontSize: 12,
+    fontFamily: 'Helvetica',
+    color: '#666666',
     textAlign: 'center',
-    letterSpacing: 0.3,
+    marginBottom: 5,
+  },
+  metadata: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    fontSize: 9,
+    color: '#888888',
+    marginTop: 10,
   },
   section: {
-    marginTop: 16,
-    padding: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderColor: '#E1E8ED',
-    borderWidth: 1,
-    borderLeftWidth: 3,
-    borderLeftColor: '#3B82F6', // Bleu moderne
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 16,
-    color: '#2563EB', // Bleu vif
-    marginBottom: 10,
-    fontWeight: 600,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EFF6FF', // Bleu très pâle
-    paddingBottom: 4,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    paddingVertical: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F6FAF7',
-  },
-  label: {
-    fontSize: 11,
-    color: '#587A66',
-    fontWeight: 500,
-  },
-  value: {
-    fontSize: 11,
-    color: '#1F5132',
-    fontWeight: 600,
-  },
-  chip: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 999,
-    backgroundColor: '#D7F3E0',
-    alignSelf: 'flex-start',
-    marginTop: 8,
-    fontSize: 10,
-    color: '#1F5132',
-    borderWidth: 1,
-    borderColor: '#A5D6B7',
-  },
-  listItem: {
-    fontSize: 11,
-    color: '#1F5132',
-    marginBottom: 6,
-    paddingVertical: 3,
-    paddingHorizontal: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F6FAF7',
-  },
-  sectionDivider: {
-    height: 1,
-    backgroundColor: '#E8F5E9',
-    marginBottom: 10,
-  },
-  profileContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  profileColumn: {
-    width: '48%',
-  },
-  dataGrid: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  dataGridItem: {
-    width: '50%',
-    marginBottom: 6,
-  },
-  // Nouveaux styles pour l'affichage des données
-  dataCard: {
-    padding: 10,
-    borderRadius: 6,
-    backgroundColor: '#F8FAFF',
-    borderLeftWidth: 2,
-    borderLeftColor: '#3B82F6',
-    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-    marginBottom: 4,
-  },
-  dataDate: {
-    fontSize: 9,
-    color: '#64748B',
-    marginBottom: 4,
-    fontWeight: 500,
-  },
-  dataDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dataValue: {
-    fontSize: 13,
+    fontSize: 14,
+    fontFamily: 'Helvetica',
     fontWeight: 'bold',
-    color: '#1E40AF',
+    color: '#2C5F9E',
+    marginBottom: 12,
+    paddingBottom: 4,
+    borderBottom: '1pt solid #E0E0E0',
   },
-  dataLabel: {
-    fontSize: 10,
-    color: '#475569',
-    fontWeight: 500,
+  subsection: {
+    marginBottom: 16,
   },
-  dataTable: {
+  subsectionTitle: {
+    fontSize: 12,
+    fontFamily: 'Helvetica',
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 8,
+  },
+  table: {
     width: '100%',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 6,
-    overflow: 'hidden',
+    border: '1pt solid #E0E0E0',
+    marginBottom: 12,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#EFF6FF',
-    borderBottomWidth: 2,
-    borderBottomColor: '#3B82F6',
-    padding: 10,
+    backgroundColor: '#F8F9FA',
+    borderBottom: '1pt solid #E0E0E0',
   },
   tableHeaderCell: {
     flex: 1,
-    fontWeight: 'bold',
+    padding: 8,
     fontSize: 10,
-    color: '#1E40AF',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontFamily: 'Helvetica',
+    fontWeight: 'bold',
+    color: '#2C5F9E',
+    borderRight: '1pt solid #E0E0E0',
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    padding: 8,
+    borderBottom: '1pt solid #E0E0E0',
   },
   tableRowEven: {
     backgroundColor: '#FFFFFF',
   },
   tableRowOdd: {
-    backgroundColor: '#F8FAFF',
+    backgroundColor: '#F8F9FA',
   },
   tableCell: {
     flex: 1,
+    padding: 8,
     fontSize: 9,
-    color: '#334155',
-    padding: 2,
+    borderRight: '1pt solid #E0E0E0',
   },
-  statusCell: {
-    borderRadius: 4,
-    padding: '3 6',
-    textAlign: 'center',
+  tableCellLast: {
+    borderRight: 'none',
+  },
+  profileGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  profileColumn: {
+    width: '48%',
+  },
+  dataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+    paddingVertical: 4,
+  },
+  dataLabel: {
+    fontSize: 10,
+    fontFamily: 'Helvetica',
     fontWeight: 'bold',
+    color: '#555555',
+    width: '40%',
+  },
+  dataValue: {
+    fontSize: 10,
+    color: '#000000',
+    width: '58%',
+  },
+  list: {
+    marginLeft: 15,
+  },
+  listItem: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  bullet: {
+    width: 10,
+    fontSize: 10,
+    marginRight: 5,
+  },
+  listText: {
+    flex: 1,
+    fontSize: 10,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  statCard: {
+    width: '23%',
+    padding: 10,
+    backgroundColor: '#F8F9FA',
+    border: '1pt solid #E0E0E0',
+    borderRadius: 2,
+  },
+  statValue: {
+    fontSize: 16,
+    fontFamily: 'Helvetica',
+    fontWeight: 'bold',
+    color: '#2C5F9E',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 9,
+    color: '#666666',
+    textAlign: 'center',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 40,
+    right: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTop: '1pt solid #E0E0E0',
+    paddingTop: 10,
+  },
+  footerText: {
     fontSize: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: '#666666',
   },
-  statusSuccess: {
-    backgroundColor: '#DCFCE7',
-    color: '#166534',
-  },
-  statusPending: {
-    backgroundColor: '#FEF3C7',
-    color: '#9A3412',
+  pageNumber: {
+    fontSize: 8,
+    color: '#666666',
+    backgroundColor: '#F8F9FA',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 2,
   },
   emptyState: {
     padding: 20,
     textAlign: 'center',
-    backgroundColor: '#F8FAFF',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderStyle: 'dashed',
+    backgroundColor: '#F8F9FA',
+    border: '1pt dashed #E0E0E0',
   },
   emptyStateText: {
-    fontSize: 11,
-    color: '#64748B',
+    fontSize: 10,
+    color: '#666666',
     fontStyle: 'italic',
   },
-  continuationText: {
-    fontSize: 10,
-    color: '#64748B',
+  continuationNotice: {
+    fontSize: 9,
+    color: '#666666',
     textAlign: 'center',
     fontStyle: 'italic',
-    marginTop: 8,
+    marginTop: 10,
     padding: 8,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 4,
+    backgroundColor: '#F8F9FA',
+    border: '1pt solid #E0E0E0',
+  },
+  highlight: {
+    backgroundColor: '#FFF2CC',
+    padding: 2,
+  },
+  statusBadge: {
+    fontSize: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  statusCompleted: {
+    backgroundColor: '#D4EDDA',
+    color: '#155724',
+  },
+  statusPending: {
+    backgroundColor: '#FFF3CD',
+    color: '#856404',
   },
 });
 
@@ -326,61 +281,63 @@ interface Props {
   periodLabel?: string;
 }
 
-// Composant Footer
+// Composant Footer professionnel
 const Footer = ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => (
-  <View style={styles.footer}>
-    <View style={styles.footerContent}>
-      <Text style={styles.footerText}>
-        HealthTrack © {new Date().getFullYear()} - Rapport confidentiel
-      </Text>
-      <Text style={styles.footerText}>
-        Généré le {new Date().toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}
-      </Text>
+  <View style={styles.footer} fixed>
+    <Text style={styles.footerText}>
+      HealthTrack - Rapport confidentiel - Généré le {new Date().toLocaleDateString('fr-FR')}
+    </Text>
+    <View style={styles.pageNumber}>
+      <Text>{pageNumber} / {totalPages}</Text>
     </View>
-    <View style={styles.footerPageInfo}>
-      <Text style={styles.footerPageText}>
-        Page {pageNumber} sur {totalPages}
-      </Text>
-    </View>
+    <Text style={styles.footerText}>
+      Document généré automatiquement
+    </Text>
   </View>
 );
 
-// Composant pour l'en-tête de la première page
+// Composant Header professionnel
 const Header = ({ user, periodLabel, meta }: { user: any; periodLabel?: string; meta: any }) => (
   <View style={styles.header}>
-    <View style={styles.logoContainer}>
-      <Svg width="30" height="30" viewBox="0 0 24 24">
-        <Path
-          fill="#256D3A"
-          d="M12,2L1,21H23L12,2M12,6L19.53,19H4.47L12,6M11,10V14H13V10H11M11,16V18H13V16H11Z"
-        />
-      </Svg>
-      <Text style={styles.title}>Rapport HealthTrack</Text>
-    </View>
+    <Text style={styles.title}>RAPPORT DE SANTÉ</Text>
     <Text style={styles.subtitle}>
-      Utilisateur: {user.prenom} {user.nom} · Période: {periodLabel || 'N/A'}
+      Suivi personnel de {user.prenom} {user.nom}
     </Text>
-    <View style={styles.headerInfoContainer}>
-      <Text style={styles.chip}>Généré le: {new Date(meta.generatedAt).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}</Text>
-      <Text style={styles.chip}>Version: {meta.version}</Text>
+    <Text style={styles.subtitle}>
+      Période analysée : {periodLabel || 'Non spécifiée'}
+    </Text>
+    <View style={styles.metadata}>
+      <Text>Email : {user.email}</Text>
+      <Text>Généré le : {new Date(meta.generatedAt).toLocaleDateString('fr-FR')}</Text>
+      <Text>Version : {meta.version}</Text>
     </View>
   </View>
 );
 
-// Composant pour la section profil utilisateur
+// Composant Profil utilisateur format document
 const ProfileSection = ({ user }: { user: any }) => (
   <View style={styles.section}>
-    <Text style={styles.sectionTitle}>Profil Utilisateur</Text>
-    <View style={styles.sectionDivider} />
+    <Text style={styles.sectionTitle}>1. PROFIL UTILISATEUR</Text>
     
-    <View style={styles.profileContainer}>
+    <View style={styles.profileGrid}>
       <View style={styles.profileColumn}>
-        <View style={styles.row}><Text style={styles.label}>Email</Text><Text style={styles.value}>{user.email}</Text></View>
+        <View style={styles.dataRow}>
+          <Text style={styles.dataLabel}>Nom complet :</Text>
+          <Text style={styles.dataValue}>{user.prenom} {user.nom}</Text>
+        </View>
+        <View style={styles.dataRow}>
+          <Text style={styles.dataLabel}>Email :</Text>
+          <Text style={styles.dataValue}>{user.email}</Text>
+        </View>
         {user.dateNaissance && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Date de naissance</Text>
-            <Text style={styles.value}>
-              {new Date(user.dateNaissance).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}
+          <View style={styles.dataRow}>
+            <Text style={styles.dataLabel}>Date de naissance :</Text>
+            <Text style={styles.dataValue}>
+              {new Date(user.dateNaissance).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
             </Text>
           </View>
         )}
@@ -388,21 +345,21 @@ const ProfileSection = ({ user }: { user: any }) => (
       
       <View style={styles.profileColumn}>
         {typeof user.taille === 'number' && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Taille</Text>
-            <Text style={styles.value}>{user.taille.toFixed(0)} cm</Text>
+          <View style={styles.dataRow}>
+            <Text style={styles.dataLabel}>Taille :</Text>
+            <Text style={styles.dataValue}>{user.taille} cm</Text>
           </View>
         )}
         {typeof user.poids === 'number' && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Poids</Text>
-            <Text style={styles.value}>{user.poids.toFixed(1)} kg</Text>
+          <View style={styles.dataRow}>
+            <Text style={styles.dataLabel}>Poids actuel :</Text>
+            <Text style={styles.dataValue}>{user.poids} kg</Text>
           </View>
         )}
         {typeof user.objectifPoids === 'number' && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Objectif poids</Text>
-            <Text style={styles.value}>{user.objectifPoids.toFixed(1)} kg</Text>
+          <View style={styles.dataRow}>
+            <Text style={styles.dataLabel}>Objectif poids :</Text>
+            <Text style={styles.dataValue}>{user.objectifPoids} kg</Text>
           </View>
         )}
       </View>
@@ -410,352 +367,274 @@ const ProfileSection = ({ user }: { user: any }) => (
   </View>
 );
 
-// Composant pour la section sommeil
-const SleepSection = ({ sommeil, isContinuation = false }: { sommeil: any[]; isContinuation?: boolean }) => {
+// Composant Statistiques récapitulatives
+const SummaryStats = ({ data }: { data: ExportPayload }) => (
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>2. SYNTHÈSE DES DONNÉES</Text>
+    
+    <View style={styles.statsGrid}>
+      <View style={styles.statCard}>
+        <Text style={styles.statValue}>{data.sommeil.length}</Text>
+        <Text style={styles.statLabel}>Jours de sommeil suivis</Text>
+      </View>
+      <View style={styles.statCard}>
+        <Text style={styles.statValue}>{data.repas.length}</Text>
+        <Text style={styles.statLabel}>Repas enregistrés</Text>
+      </View>
+      <View style={styles.statCard}>
+        <Text style={styles.statValue}>{data.activites.length}</Text>
+        <Text style={styles.statLabel}>Activités physiques</Text>
+      </View>
+      <View style={styles.statCard}>
+        <Text style={styles.statValue}>{data.objectifs.length}</Text>
+        <Text style={styles.statLabel}>Objectifs définis</Text>
+      </View>
+    </View>
+  </View>
+);
+
+// Composant Données de sommeil format tableau
+const SleepSection = ({ sommeil }: { sommeil: any[] }) => {
   if (sommeil.length === 0) {
-    return null;
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>3. DONNÉES DE SOMMEIL</Text>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Aucune donnée de sommeil disponible pour cette période</Text>
+        </View>
+      </View>
+    );
   }
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        Sommeil ({sommeil.length}) {isContinuation ? '(suite)' : ''}
-      </Text>
-      <View style={styles.sectionDivider} />
+      <Text style={styles.sectionTitle}>3. DONNÉES DE SOMMEIL</Text>
       
-      <View style={styles.dataGrid}>
-        {sommeil.map((s: any, idx: number) => (
-          <View key={`sleep-${idx}`} style={styles.dataGridItem}>
-            <View style={styles.dataCard}>
-              <Text style={styles.dataDate}>{new Date(s.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}</Text>
-              <View style={styles.dataDetails}>
-                <Text style={styles.dataValue}>{s.dureeSommeil.toFixed(1)}h</Text>
-                <Text style={styles.dataLabel}>Qualité {s.qualiteSommeil}/5</Text>
-              </View>
-            </View>
+      <View style={styles.table}>
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Date</Text>
+          <Text style={styles.tableHeaderCell}>Durée (h)</Text>
+          <Text style={styles.tableHeaderCell}>Qualité</Text>
+          <Text style={[styles.tableHeaderCell, styles.tableCellLast]}>Heures de coucher/léver</Text>
+        </View>
+        
+        {sommeil.slice(0, 15).map((s, index) => (
+          <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
+            <Text style={[styles.tableCell, { flex: 2 }]}>
+              {new Date(s.date).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
+            </Text>
+            <Text style={styles.tableCell}>{s.dureeSommeil.toFixed(1)}</Text>
+            <Text style={styles.tableCell}>{s.qualiteSommeil}/5</Text>
+            <Text style={[styles.tableCell, styles.tableCellLast]}>
+              {s.heureCoucher || 'N/A'} - {s.heureReveil || 'N/A'}
+            </Text>
           </View>
         ))}
       </View>
+      
+      {sommeil.length > 15 && (
+        <Text style={styles.continuationNotice}>
+          + {sommeil.length - 15} entrées supplémentaires non affichées
+        </Text>
+      )}
     </View>
   );
 };
 
-// Composant pour la section repas
-const MealsSection = ({ repas, isContinuation = false }: { repas: any[]; isContinuation?: boolean }) => {
+// Composant Données de repas format tableau
+const MealsSection = ({ repas }: { repas: any[] }) => {
   if (repas.length === 0) {
-    return null;
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>4. DONNÉES NUTRITIONNELLES</Text>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Aucun repas enregistré pour cette période</Text>
+        </View>
+      </View>
+    );
   }
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        Repas ({repas.length}) {isContinuation ? '(suite)' : ''}
-      </Text>
-      <View style={styles.sectionDivider} />
+      <Text style={styles.sectionTitle}>4. DONNÉES NUTRITIONNELLES</Text>
       
-      <View style={styles.dataTable}>
+      <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={styles.tableHeaderCell}>Date</Text>
-          <Text style={styles.tableHeaderCell}>Type</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Date et heure</Text>
+          <Text style={styles.tableHeaderCell}>Type de repas</Text>
           <Text style={styles.tableHeaderCell}>Calories</Text>
+          <Text style={[styles.tableHeaderCell, styles.tableCellLast]}>Description</Text>
         </View>
         
-        {repas.map((r: any, idx: number) => (
-          <View key={`meal-${idx}`} style={[styles.tableRow, idx % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
-            <Text style={styles.tableCell}>{new Date(r.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}</Text>
+        {repas.slice(0, 12).map((r, index) => (
+          <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
+            <Text style={[styles.tableCell, { flex: 1.5 }]}>
+              {new Date(r.date).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit'
+              })} {r.heure || ''}
+            </Text>
             <Text style={styles.tableCell}>{r.typeRepas}</Text>
-            <Text style={styles.tableCell}>{(r.calories || 0).toFixed(0)} cal</Text>
+            <Text style={styles.tableCell}>{r.calories || 0}</Text>
+            <Text style={[styles.tableCell, styles.tableCellLast]}>
+              {r.description || r.aliments || 'Non spécifié'}
+            </Text>
           </View>
         ))}
       </View>
+      
+      {repas.length > 12 && (
+        <Text style={styles.continuationNotice}>
+          + {repas.length - 12} repas supplémentaires non affichés
+        </Text>
+      )}
     </View>
   );
 };
 
-// Composant pour la section activités
-const ActivitiesSection = ({ activites, isContinuation = false }: { activites: any[]; isContinuation?: boolean }) => {
+// Composant Activités physiques format tableau
+const ActivitiesSection = ({ activites }: { activites: any[] }) => {
   if (activites.length === 0) {
-    return null;
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>5. ACTIVITÉS PHYSIQUES</Text>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Aucune activité physique enregistrée pour cette période</Text>
+        </View>
+      </View>
+    );
   }
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        Activités ({activites.length}) {isContinuation ? '(suite)' : ''}
-      </Text>
-      <View style={styles.sectionDivider} />
+      <Text style={styles.sectionTitle}>5. ACTIVITÉS PHYSIQUES</Text>
       
-      <View style={styles.dataTable}>
+      <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={styles.tableHeaderCell}>Date</Text>
-          <Text style={styles.tableHeaderCell}>Type</Text>
-          <Text style={styles.tableHeaderCell}>Durée</Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Date</Text>
+          <Text style={styles.tableHeaderCell}>Type d'activité</Text>
+          <Text style={styles.tableHeaderCell}>Durée (min)</Text>
           <Text style={styles.tableHeaderCell}>Intensité</Text>
+          <Text style={[styles.tableHeaderCell, styles.tableCellLast]}>Calories brûlées</Text>
         </View>
         
-        {activites.map((a: any, idx: number) => (
-          <View key={`act-${idx}`} style={[styles.tableRow, idx % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
-            <Text style={styles.tableCell}>{new Date(a.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}</Text>
+        {activites.slice(0, 12).map((a, index) => (
+          <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
+            <Text style={[styles.tableCell, { flex: 1.5 }]}>
+              {new Date(a.date).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
+            </Text>
             <Text style={styles.tableCell}>{a.typeActivite}</Text>
-            <Text style={styles.tableCell}>{parseInt(a.duree, 10)} min</Text>
+            <Text style={styles.tableCell}>{parseInt(a.duree, 10)}</Text>
             <Text style={styles.tableCell}>{a.intensite}</Text>
+            <Text style={[styles.tableCell, styles.tableCellLast]}>
+              {a.caloriesBrulees || 'N/A'}
+            </Text>
           </View>
         ))}
       </View>
+      
+      {activites.length > 12 && (
+        <Text style={styles.continuationNotice}>
+          + {activites.length - 12} activités supplémentaires non affichées
+        </Text>
+      )}
     </View>
   );
 };
 
-// Composant pour la section objectifs
-const GoalsSection = ({ objectifs, isContinuation = false }: { objectifs: any[]; isContinuation?: boolean }) => {
+// Composant Objectifs format tableau
+const GoalsSection = ({ objectifs }: { objectifs: any[] }) => {
   if (objectifs.length === 0) {
-    return null;
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>6. OBJECTIFS DE SANTÉ</Text>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Aucun objectif défini pour cette période</Text>
+        </View>
+      </View>
+    );
   }
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        Objectifs ({objectifs.length}) {isContinuation ? '(suite)' : ''}
-      </Text>
-      <View style={styles.sectionDivider} />
+      <Text style={styles.sectionTitle}>6. OBJECTIFS DE SANTÉ</Text>
       
-      <View style={styles.dataTable}>
+      <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={styles.tableHeaderCell}>Type</Text>
-          <Text style={styles.tableHeaderCell}>Actuel</Text>
-          <Text style={styles.tableHeaderCell}>Cible</Text>
+          <Text style={styles.tableHeaderCell}>Type d'objectif</Text>
+          <Text style={styles.tableHeaderCell}>Valeur actuelle</Text>
+          <Text style={styles.tableHeaderCell}>Valeur cible</Text>
           <Text style={styles.tableHeaderCell}>Période</Text>
-          <Text style={styles.tableHeaderCell}>Statut</Text>
+          <Text style={[styles.tableHeaderCell, styles.tableCellLast]}>Statut</Text>
         </View>
         
-        {objectifs.map((o: any, idx: number) => {
+        {objectifs.slice(0, 10).map((o, index) => {
           const actuel = typeof o.valeurActuelle === 'number' ? o.valeurActuelle.toFixed(1) : o.valeurActuelle;
           const cible = typeof o.valeurCible === 'number' ? o.valeurCible.toFixed(1) : o.valeurCible;
-          const debut = new Date(o.dateDebut).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'});
-          const fin = new Date(o.dateFinSouhaitee).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'});
+          const debut = new Date(o.dateDebut).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+          const fin = new Date(o.dateFinSouhaitee).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
           
-          let statut = "En cours";
-          if (typeof o.valeurActuelle === 'number' && typeof o.valeurCible === 'number') {
-            if (o.valeurActuelle >= o.valeurCible) {
-              statut = "Atteint";
-            }
-          }
+          const isCompleted = typeof o.valeurActuelle === 'number' && 
+                            typeof o.valeurCible === 'number' && 
+                            o.valeurActuelle >= o.valeurCible;
           
           return (
-            <View key={`obj-${idx}`} style={[styles.tableRow, idx % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
+            <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
               <Text style={styles.tableCell}>{o.type}</Text>
               <Text style={styles.tableCell}>{actuel}</Text>
               <Text style={styles.tableCell}>{cible}</Text>
               <Text style={styles.tableCell}>{debut} - {fin}</Text>
-              <Text style={[styles.tableCell, styles.statusCell, statut === "Atteint" ? styles.statusSuccess : styles.statusPending]}>
-                {statut}
+              <Text style={[styles.tableCell, styles.tableCellLast]}>
+                <Text style={[styles.statusBadge, isCompleted ? styles.statusCompleted : styles.statusPending]}>
+                  {isCompleted ? 'ATTEINT' : 'EN COURS'}
+                </Text>
               </Text>
             </View>
           );
         })}
       </View>
+      
+      {objectifs.length > 10 && (
+        <Text style={styles.continuationNotice}>
+          + {objectifs.length - 10} objectifs supplémentaires non affichés
+        </Text>
+      )}
     </View>
   );
 };
 
-// Fonction pour calculer la hauteur estimée d'une section
-const estimateSectionHeight = (sectionType: 'sleep' | 'meals' | 'activities' | 'goals', dataLength: number): number => {
-  const baseHeights = {
-    sleep: 120, // Hauteur de base pour la section sommeil
-    meals: 100, // Hauteur de base pour la section repas
-    activities: 100, // Hauteur de base pour la section activités
-    goals: 100 // Hauteur de base pour la section objectifs
-  };
-
-  const itemHeights = {
-    sleep: 40, // Hauteur par carte de sommeil
-    meals: 25, // Hauteur par ligne de repas
-    activities: 25, // Hauteur par ligne d'activité
-    goals: 25 // Hauteur par ligne d'objectif
-  };
-
-  return baseHeights[sectionType] + (dataLength * itemHeights[sectionType]);
-};
-
-// Fonction pour paginer intelligemment les données
-const paginateData = (data: ExportPayload) => {
-  const pages: Array<{
-    pageNumber: number;
-    sections: Array<{
-      type: 'sleep' | 'meals' | 'activities' | 'goals';
-      data: any[];
-      isContinuation?: boolean;
-    }>;
-  }> = [];
-
-  // Hauteur maximale disponible par page (en unités PDF approximatives)
-  const MAX_PAGE_HEIGHT = 600;
-  // Hauteur déjà utilisée sur la première page (en-tête + profil)
-  const FIRST_PAGE_USED_HEIGHT = 300;
-
-  const allSections = [
-    { type: 'sleep' as const, data: data.sommeil },
-    { type: 'meals' as const, data: data.repas },
-    { type: 'activities' as const, data: data.activites },
-    { type: 'goals' as const, data: data.objectifs }
-  ].filter(section => section.data.length > 0);
-
-  let currentPageNumber = 1;
-  let currentPageHeight = currentPageNumber === 1 ? FIRST_PAGE_USED_HEIGHT : 0;
-  let currentPageSections: any[] = [];
-  
-  // Pour suivre quelles données ont déjà été affichées
-  const displayedData = {
-    sleep: 0,
-    meals: 0,
-    activities: 0,
-    goals: 0
-  };
-
-  // Fonction pour ajouter une section à la page actuelle
-  const addSectionToPage = (sectionType: 'sleep' | 'meals' | 'activities' | 'goals', data: any[], isContinuation = false) => {
-    const sectionHeight = estimateSectionHeight(sectionType, data.length);
-    
-    // Si c'est la première page et qu'on a encore de la place, ou si c'est une page suivante
-    if (currentPageHeight + sectionHeight <= MAX_PAGE_HEIGHT) {
-      currentPageSections.push({
-        type: sectionType,
-        data: data,
-        isContinuation: isContinuation
-      });
-      currentPageHeight += sectionHeight;
-      return true;
-    }
-    return false;
-  };
-
-  // Fonction pour finaliser la page actuelle et passer à la suivante
-  const finalizeCurrentPage = () => {
-    if (currentPageSections.length > 0) {
-      pages.push({
-        pageNumber: currentPageNumber,
-        sections: [...currentPageSections]
-      });
-      currentPageNumber++;
-      currentPageSections = [];
-      currentPageHeight = 0; // Les pages suivantes n'ont pas l'en-tête
-    }
-  };
-
-  // Première page - on essaie d'ajouter autant de sections complètes que possible
-  for (const section of allSections) {
-    const remainingData = section.data.slice(displayedData[section.type]);
-    if (remainingData.length > 0) {
-      const added = addSectionToPage(section.type, remainingData, displayedData[section.type] > 0);
-      if (added) {
-        displayedData[section.type] += remainingData.length;
-      }
-    }
-  }
-
-  // Finaliser la première page
-  finalizeCurrentPage();
-
-  // Pages suivantes - on continue avec les données restantes
-  let hasRemainingData = true;
-  while (hasRemainingData) {
-    hasRemainingData = false;
-    
-    for (const section of allSections) {
-      const remainingData = section.data.slice(displayedData[section.type]);
-      if (remainingData.length > 0) {
-        hasRemainingData = true;
-        const added = addSectionToPage(section.type, remainingData, displayedData[section.type] > 0);
-        
-        if (added) {
-          displayedData[section.type] += remainingData.length;
-        } else {
-          // Si on ne peut pas ajouter cette section, on finalise la page actuelle
-          finalizeCurrentPage();
-          // Et on réessaie d'ajouter la section sur la nouvelle page
-          const retryData = section.data.slice(displayedData[section.type]);
-          if (retryData.length > 0) {
-            addSectionToPage(section.type, retryData, displayedData[section.type] > 0);
-            displayedData[section.type] += retryData.length;
-          }
-        }
-      }
-    }
-    
-    // Finaliser la page après avoir traité toutes les sections
-    finalizeCurrentPage();
-  }
-
-  return pages;
-};
-
-// Composant principal avec pagination intelligente
+// Composant principal
 export const UserReport: React.FC<Props> = ({ data, periodLabel }) => {
-  const { user, meta } = data;
-  
-  // Paginer les données
-  const paginatedPages = paginateData(data);
-  const totalPages = paginatedPages.length;
-
-  // Si aucune donnée n'est disponible
-  if (totalPages === 0) {
-    return (
-      <Document>
-        <Page size="A4" style={styles.page}>
-          <Footer pageNumber={1} totalPages={1} />
-          <Header user={user} periodLabel={periodLabel} meta={meta} />
-          <ProfileSection user={user} />
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Aucune donnée disponible</Text>
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>
-                Aucune donnée de suivi n'est disponible pour la période sélectionnée.
-              </Text>
-            </View>
-          </View>
-        </Page>
-      </Document>
-    );
-  }
+  const { user, sommeil, repas, activites, objectifs, meta } = data;
 
   return (
     <Document>
-      {paginatedPages.map((page, pageIndex) => (
-        <Page key={`page-${pageIndex + 1}`} size="A4" style={styles.page}>
-          <Footer pageNumber={pageIndex + 1} totalPages={totalPages} />
-          
-          {/* Afficher l'en-tête et le profil seulement sur la première page */}
-          {pageIndex === 0 && (
-            <>
-              <Header user={user} periodLabel={periodLabel} meta={meta} />
-              <ProfileSection user={user} />
-            </>
-          )}
-          
-          {/* Afficher les sections de la page */}
-          {page.sections.map((section, sectionIndex) => {
-            switch (section.type) {
-              case 'sleep':
-                return <SleepSection key={`sleep-${pageIndex}-${sectionIndex}`} sommeil={section.data} isContinuation={section.isContinuation} />;
-              case 'meals':
-                return <MealsSection key={`meals-${pageIndex}-${sectionIndex}`} repas={section.data} isContinuation={section.isContinuation} />;
-              case 'activities':
-                return <ActivitiesSection key={`activities-${pageIndex}-${sectionIndex}`} activites={section.data} isContinuation={section.isContinuation} />;
-              case 'goals':
-                return <GoalsSection key={`goals-${pageIndex}-${sectionIndex}`} objectifs={section.data} isContinuation={section.isContinuation} />;
-              default:
-                return null;
-            }
-          })}
-
-          {/* Indication de continuation si nécessaire */}
-          {pageIndex < paginatedPages.length - 1 && (
-            <Text style={styles.continuationText}>
-              Suite des données à la page suivante...
-            </Text>
-          )}
-        </Page>
-      ))}
+      <Page size="A4" style={styles.page}>
+        <Footer pageNumber={1} totalPages={1} />
+        <Header user={user} periodLabel={periodLabel} meta={meta} />
+        <ProfileSection user={user} />
+        <SummaryStats data={data} />
+        <SleepSection sommeil={sommeil} />
+        <MealsSection repas={repas} />
+        <ActivitiesSection activites={activites} />
+        <GoalsSection objectifs={objectifs} />
+      </Page>
     </Document>
   );
 };
