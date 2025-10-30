@@ -23,6 +23,7 @@ import {
   Trash2,
   Save
 } from 'lucide-react';
+import { settingsService, type UserSettings } from '@/services/api';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -69,6 +70,26 @@ export default function SettingsPage() {
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
+        // Charger les paramètres depuis le backend
+        settingsService.getMySettings()
+          .then((resp) => {
+            if (resp.success && resp.data) {
+              const data = (resp.data as any);
+              const payload: UserSettings = {
+                notifications: data.notifications,
+                privacy: data.privacy,
+                display: data.display,
+                backup: data.backup,
+              };
+              setSettings(payload);
+              // Appliquer le thème depuis le backend
+              applyThemePreference(payload.display.theme);
+            }
+          })
+          .catch((error) => {
+            console.error('Erreur de chargement des paramètres:', error);
+            toast({ title: 'Erreur', description: 'Impossible de charger les paramètres', variant: 'destructive' });
+          });
       } catch (error) {
         console.error('Erreur lors du chargement des données utilisateur:', error);
         authService.logout();
@@ -84,13 +105,13 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      // Simuler la sauvegarde
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Paramètres sauvegardés !",
-        description: "Vos préférences ont été mises à jour",
-      });
+      const resp = await settingsService.updateAll(settings);
+      if (resp.success) {
+        toast({
+          title: "Paramètres sauvegardés !",
+          description: "Vos préférences ont été mises à jour",
+        });
+      }
     } catch (error) {
       toast({
         title: "Erreur",
@@ -102,70 +123,88 @@ export default function SettingsPage() {
     }
   };
 
-  const handleExportData = () => {
-    // Simuler l'export des données
-    const dataToExport = {
-      user: user,
-      exportDate: new Date().toISOString(),
-      settings: settings,
-      message: "Données exportées depuis HealthTrack"
-    };
-    
-    const dataStr = JSON.stringify(dataToExport, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `healthtrack-export-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Export réussi !",
-      description: "Vos données ont été téléchargées",
-    });
+  const handleExportData = async () => {
+    try {
+      const resp = await settingsService.exportSettings();
+      if (resp.success && resp.data) {
+        const json = JSON.stringify(resp.data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `healthtrack-settings-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast({ title: 'Export réussi !', description: 'Vos paramètres ont été téléchargés' });
+      }
+    } catch (error) {
+      toast({ title: 'Erreur', description: "Impossible d'exporter les paramètres", variant: 'destructive' });
+    }
   };
 
   const updateNotificationSetting = (key: string, value: boolean) => {
-    setSettings({
+    const next = {
       ...settings,
       notifications: {
         ...settings.notifications,
-        [key]: value
+        [key]: value,
       }
+    };
+    setSettings(next);
+    settingsService.updateNotifications({ [key]: value }).catch((e) => {
+      console.error('Erreur update notifications:', e);
+      toast({ title: 'Erreur', description: 'Mise à jour des notifications échouée', variant: 'destructive' });
     });
   };
 
   const updatePrivacySetting = (key: string, value: boolean) => {
-    setSettings({
+    const next = {
       ...settings,
       privacy: {
         ...settings.privacy,
-        [key]: value
+        [key]: value,
       }
+    };
+    setSettings(next);
+    settingsService.updatePrivacy({ [key]: value }).catch((e) => {
+      console.error('Erreur update privacy:', e);
+      toast({ title: 'Erreur', description: 'Mise à jour de la confidentialité échouée', variant: 'destructive' });
     });
   };
 
   const updateDisplaySetting = (key: string, value: string) => {
-    setSettings({
+    const next = {
       ...settings,
       display: {
         ...settings.display,
-        [key]: value
+        [key]: value,
       }
+    };
+    setSettings(next);
+    // Si on modifie le thème, appliquer immédiatement
+    if (key === 'theme') {
+      applyThemePreference(value as 'system' | 'light' | 'dark');
+    }
+    settingsService.updateDisplay({ [key]: value } as Partial<UserSettings['display']>).catch((e) => {
+      console.error('Erreur update display:', e);
+      toast({ title: 'Erreur', description: "Mise à jour de l'affichage échouée", variant: 'destructive' });
     });
   };
 
   const updateBackupSetting = (key: string, value: boolean | string) => {
-    setSettings({
+    const next = {
       ...settings,
       backup: {
         ...settings.backup,
-        [key]: value
+        [key]: value,
       }
+    };
+    setSettings(next);
+    settingsService.updateBackup({ [key]: value } as Partial<UserSettings['backup']>).catch((e) => {
+      console.error('Erreur update backup:', e);
+      toast({ title: 'Erreur', description: 'Mise à jour de la sauvegarde échouée', variant: 'destructive' });
     });
   };
 
@@ -525,3 +564,18 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+const applyThemePreference = (pref: 'system' | 'light' | 'dark') => {
+  try {
+    const root = document.documentElement;
+    const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = pref === 'dark' || (pref === 'system' && prefersDark);
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  } catch (e) {
+    console.warn('ApplyThemePreference warning:', e);
+  }
+};

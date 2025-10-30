@@ -11,6 +11,7 @@ import { activiteService } from './activiteService';
 import { objectifService } from './objectifService';
 import { notificationsService } from './notificationsService';
 import { apiConfig, getAuthHeaders, validateResponse, handleApiError } from './config';
+import { exportService } from './exportService';
 
 // Ré-export des types et services
 export { apiConfig, getAuthHeaders, validateResponse, handleApiError } from './config';
@@ -35,6 +36,7 @@ export { repasService } from './repasService';
 export { activiteService } from './activiteService';
 export { objectifService } from './objectifService';
 export { notificationsService } from './notificationsService';
+export { settingsService, type UserSettings, type SettingsResponse } from './settingsService';
 
 /**
  * Fonction utilitaire pour initialiser l'authentification
