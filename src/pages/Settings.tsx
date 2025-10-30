@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from '@/contexts/ThemeContext';
 import { 
   Settings, 
   Bell, 
@@ -27,6 +28,10 @@ import { settingsService, type UserSettings } from '@/services/api';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [settings, setSettings] = useState({
     notifications: {
       rappelsSommeil: true,
@@ -53,57 +58,78 @@ export default function SettingsPage() {
     }
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est authentifié
-    if (!authService.isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
-
-    // Récupérer les données utilisateur depuis localStorage
-    const userData = localStorage.getItem('userData');
-    if (userData) {
+    const loadUserAndSettings = async () => {
       try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        // Charger les paramètres depuis le backend
-        settingsService.getMySettings()
-          .then((resp) => {
-            if (resp.success && resp.data) {
-              const data = (resp.data as any);
-              const payload: UserSettings = {
-                notifications: data.notifications,
-                privacy: data.privacy,
-                display: data.display,
-                backup: data.backup,
-              };
-              setSettings(payload);
-              // Appliquer le thème depuis le backend
-              applyThemePreference(payload.display.theme);
-            }
-          })
-          .catch((error) => {
-            console.error('Erreur de chargement des paramètres:', error);
-            toast({ title: 'Erreur', description: 'Impossible de charger les paramètres', variant: 'destructive' });
-          });
+        // Vérifier si l'utilisateur est authentifié
+        if (!authService.isAuthenticated()) {
+          navigate('/login');
+          return;
+        }
+
+        // Récupérer les données utilisateur depuis localStorage
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          
+          // Charger les paramètres depuis le backend
+          const resp = await settingsService.getMySettings();
+          if (resp.success && resp.data) {
+            const data = (resp.data as any);
+            const payload: UserSettings = {
+              notifications: data.notifications,
+              privacy: data.privacy,
+              display: data.display,
+              backup: data.backup,
+            };
+            setSettings(payload);
+          }
+        } else {
+          navigate('/login');
+        }
       } catch (error) {
-        console.error('Erreur lors du chargement des données utilisateur:', error);
+        console.error('Erreur lors du chargement:', error);
+        toast({ 
+          title: 'Erreur', 
+          description: 'Impossible de charger les paramètres', 
+          variant: 'destructive' 
+        });
         authService.logout();
         navigate('/login');
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      navigate('/login');
-    }
-  }, [navigate]);
+    };
+
+    loadUserAndSettings();
+  }, [navigate, toast]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Chargement des paramètres...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
   const handleSave = async () => {
-    setIsLoading(true);
+    setIsSaving(true);
     try {
       const resp = await settingsService.updateAll(settings);
       if (resp.success) {
@@ -111,19 +137,27 @@ export default function SettingsPage() {
           title: "Paramètres sauvegardés !",
           description: "Vos préférences ont été mises à jour",
         });
+      } else {
+        toast({
+          title: "Erreur",
+          description: resp.message || "Impossible de sauvegarder les paramètres",
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      console.error('Erreur sauvegarde:', error);
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder les paramètres",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
   const handleExportData = async () => {
+    setIsExporting(true);
     try {
       const resp = await settingsService.exportSettings();
       if (resp.success && resp.data) {
@@ -137,11 +171,100 @@ export default function SettingsPage() {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        toast({ title: 'Export réussi !', description: 'Vos paramètres ont été téléchargés' });
+        toast({ 
+          title: 'Export réussi !', 
+          description: 'Vos paramètres ont été téléchargés' 
+        });
+      } else {
+        toast({ 
+          title: 'Erreur', 
+          description: resp.message || "Impossible d'exporter les paramètres", 
+          variant: 'destructive' 
+        });
       }
     } catch (error) {
-      toast({ title: 'Erreur', description: "Impossible d'exporter les paramètres", variant: 'destructive' });
+      console.error('Erreur export:', error);
+      toast({ 
+        title: 'Erreur', 
+        description: "Impossible d'exporter les paramètres", 
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsExporting(false);
     }
+  };
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    // Vérifier le type de fichier
+    if (!file.name.endsWith('.json')) {
+      toast({
+        title: 'Erreur',
+        description: 'Veuillez sélectionner un fichier JSON valide',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const fileContent = await file.text();
+      const importData = JSON.parse(fileContent);
+
+      // Validation de base du format
+      if (!importData.settings || typeof importData.settings !== 'object') {
+        toast({
+          title: 'Erreur',
+          description: 'Format de fichier invalide',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Importer les paramètres via l'API
+      const response = await settingsService.importSettings(importData);
+      
+      if (response.success && response.data) {
+        // Mettre à jour l'état local avec les nouvelles données
+        const newSettings: UserSettings = {
+          notifications: response.data.notifications,
+          privacy: response.data.privacy,
+          display: response.data.display,
+          backup: response.data.backup,
+        };
+        setSettings(newSettings);
+
+        // Appliquer le nouveau thème si changé
+        if (response.data.display?.theme) {
+          setTheme(response.data.display.theme);
+        }
+
+        toast({
+          title: 'Import réussi',
+          description: 'Vos paramètres ont été importés avec succès',
+        });
+      } else {
+        toast({
+          title: 'Erreur',
+          description: response.message || 'Erreur lors de l\'import des paramètres',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Erreur import:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la lecture du fichier ou de l\'import',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsImporting(false);
+    }
+
+    // Réinitialiser l'input file
+    event.target.value = '';
   };
 
   const updateNotificationSetting = (key: string, value: boolean) => {
@@ -183,9 +306,9 @@ export default function SettingsPage() {
       }
     };
     setSettings(next);
-    // Si on modifie le thème, appliquer immédiatement
+    // Si on modifie le thème, appliquer immédiatement via le contexte global
     if (key === 'theme') {
-      applyThemePreference(value as 'system' | 'light' | 'dark');
+      setTheme(value as 'system' | 'light' | 'dark');
     }
     settingsService.updateDisplay({ [key]: value } as Partial<UserSettings['display']>).catch((e) => {
       console.error('Erreur update display:', e);
@@ -503,17 +626,33 @@ export default function SettingsPage() {
               <div className="space-y-3">
                 <Button 
                   onClick={handleExportData}
+                  disabled={isExporting}
                   variant="outline" 
                   className="w-full justify-start"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Exporter mes données
+                  {isExporting ? 'Export en cours...' : 'Exporter mes données'}
                 </Button>
 
-                <Button variant="outline" className="w-full justify-start">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Importer des données
-                </Button>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportFile}
+                    className="hidden"
+                    id="import-file"
+                    disabled={isImporting}
+                  />
+                  <Button 
+                    onClick={() => document.getElementById('import-file')?.click()}
+                    disabled={isImporting}
+                    variant="outline" 
+                    className="w-full justify-start"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {isImporting ? 'Import en cours...' : 'Importer des données'}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -553,29 +692,14 @@ export default function SettingsPage() {
         <div className="sticky bottom-8 flex justify-center mt-8">
           <Button 
             onClick={handleSave}
-            disabled={isLoading}
+            disabled={isSaving}
             className="gradient-primary text-white shadow-strong"
           >
             <Save className="h-4 w-4 mr-2" />
-            {isLoading ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
+            {isSaving ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
           </Button>
         </div>
       </main>
     </div>
   );
 }
-
-const applyThemePreference = (pref: 'system' | 'light' | 'dark') => {
-  try {
-    const root = document.documentElement;
-    const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isDark = pref === 'dark' || (pref === 'system' && prefersDark);
-    if (isDark) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  } catch (e) {
-    console.warn('ApplyThemePreference warning:', e);
-  }
-};

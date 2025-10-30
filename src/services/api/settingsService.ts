@@ -117,5 +117,17 @@ export const settingsService = {
       headers: getAuthHeaders(token),
     });
     return await validateResponse(res) as SettingsResponse;
+  },
+
+  async importSettings(settingsData: any): Promise<SettingsResponse> {
+    const token = authService.getToken();
+    if (!token) return { success: false, message: 'Non authentifié' };
+
+    const res = await fetch(`${apiConfig.baseURL}/settings/import`, {
+      method: 'POST',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify(settingsData),
+    });
+    return await validateResponse(res) as SettingsResponse;
   }
 };

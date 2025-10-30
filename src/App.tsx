@@ -20,6 +20,7 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Tutorial from "./components/Tutorial";
 import { TutorialProvider, useTutorialContext } from "./contexts/TutorialContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import VerifyEmail from "./pages/VerifyEmail";
 
 const queryClient = new QueryClient();
@@ -64,9 +65,11 @@ const AppContent = () => {
 };
 
 const AppWithProvider = () => (
-  <TutorialProvider>
-    <AppContent />
-  </TutorialProvider>
+  <ThemeProvider>
+    <TutorialProvider>
+      <AppContent />
+    </TutorialProvider>
+  </ThemeProvider>
 );
 
 const App = () => (
