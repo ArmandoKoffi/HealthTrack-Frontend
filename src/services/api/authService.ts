@@ -99,6 +99,25 @@ export const authService = {
       const data = await response.json();
 
       if (!response.ok) {
+        // Si une session active bloque la connexion, réessayer avec force=true
+        if (response.status === 409) {
+          const forceResponse = await fetch(`${apiConfig.baseURL}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ...loginData, force: true }),
+          });
+
+          const forceData = await forceResponse.json();
+
+          if (!forceResponse.ok) {
+            throw new Error(forceData.message || 'Erreur lors de la connexion (forcée)');
+          }
+
+          return forceData;
+        }
+
         throw new Error(data.message || 'Erreur lors de la connexion');
       }
 
