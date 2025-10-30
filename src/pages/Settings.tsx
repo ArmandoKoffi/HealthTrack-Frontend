@@ -33,8 +33,7 @@ export default function SettingsPage() {
       rappelsRepas: false,
       felicitations: true,
       conseils: true,
-      email: false,
-      push: true
+      email: false
     },
     privacy: {
       partagerDonnees: false,
@@ -287,22 +286,7 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Smartphone className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <Label htmlFor="push-notif">Notifications push</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Notifications directes sur votre appareil
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  id="push-notif"
-                  checked={settings.notifications.push}
-                  onCheckedChange={(value) => updateNotificationSetting('push', value)}
-                />
-              </div>
+
             </CardContent>
           </Card>
 

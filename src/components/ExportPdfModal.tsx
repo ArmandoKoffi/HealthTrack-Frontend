@@ -27,32 +27,7 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
     URL.revokeObjectURL(url);
   };
 
-  const handlePrintPdf = async () => {
-    if (!documentNode || !data) return;
-    const blob = await pdf(documentNode).toBlob();
-    const url = URL.createObjectURL(blob);
-    // Ouvrir dans un iframe caché pour lancer l'impression du PDF
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    iframe.src = url;
-    document.body.appendChild(iframe);
-    iframe.onload = () => {
-      try {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-      } finally {
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url);
-        }, 1000);
-      }
-    };
-  };
+
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o ? onClose() : undefined}>
@@ -117,13 +92,6 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({ open, onClose, d
               className="min-w-[160px] rounded-lg"
             >
               Télécharger le PDF
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handlePrintPdf}
-              className="min-w-[140px] rounded-lg"
-            >
-              Imprimer le PDF
             </Button>
             <Button 
               variant="default" 
