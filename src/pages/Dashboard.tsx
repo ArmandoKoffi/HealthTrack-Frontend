@@ -389,22 +389,33 @@ export default function Dashboard() {
                   Ajouter activité
                 </Button>
               </Link>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <Select value={exportPeriod} onValueChange={(v) => setExportPeriod(v as any)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="week">Cette semaine</SelectItem>
-                    <SelectItem value="month">Ce mois</SelectItem>
-                    <SelectItem value="quarter">Ce trimestre</SelectItem>
-                    <SelectItem value="year">Cette année</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" className="w-full justify-start" onClick={exportReport} disabled={isExporting}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Exporter ({getPeriodLabel()})
-                </Button>
+              <div className="space-y-3 pt-2 border-t">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Select value={exportPeriod} onValueChange={(v) => setExportPeriod(v as any)}>
+                    <SelectTrigger className="w-full sm:flex-1">
+                      <SelectValue placeholder="Période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="week">Cette semaine</SelectItem>
+                      <SelectItem value="month">Ce mois</SelectItem>
+                      <SelectItem value="quarter">Ce trimestre</SelectItem>
+                      <SelectItem value="year">Cette année</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button 
+                    variant="outline" 
+                    className="w-full sm:w-auto justify-center sm:justify-start min-w-[120px] flex-shrink-0" 
+                    onClick={exportReport} 
+                    disabled={isExporting}
+                  >
+                    <Download className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">Exporter</span>
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground text-center sm:text-left">
+                  {getPeriodLabel()}
+                </p>
               </div>
             </CardContent>
           </Card>
