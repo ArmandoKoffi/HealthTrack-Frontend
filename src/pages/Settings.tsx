@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { settingsService, type UserSettings } from '@/services/api';
 import { analyticsService } from '@/services/analyticsService';
+import { backupService } from '@/services/backupService';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -97,6 +98,8 @@ export default function SettingsPage() {
               payload.privacy.analytiques,
               payload.privacy.amelioration
             );
+            // Initialiser la sauvegarde auto
+            backupService.setSchedule(payload.backup);
           }
         } else {
           navigate('/login');
@@ -116,6 +119,30 @@ export default function SettingsPage() {
     };
 
     loadUserAndSettings();
+
+    // Écoute des événements de sauvegarde pour feedback utilisateur
+    const onBackupCompleted = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { success: boolean; message: string };
+      toast({
+        title: detail.success ? 'Sauvegarde automatique' : 'Sauvegarde échouée',
+        description: detail.message,
+        variant: detail.success ? undefined : 'destructive',
+      });
+    };
+    const onBackupScheduleUpdated = (e: Event) => {
+      const { nextRun } = (e as CustomEvent).detail as { nextRun?: number };
+      if (nextRun) {
+        const date = new Date(nextRun);
+        console.log('Prochaine sauvegarde prévue le', date.toLocaleString());
+      }
+    };
+    window.addEventListener('backupCompleted', onBackupCompleted as EventListener);
+    window.addEventListener('backupScheduleUpdated', onBackupScheduleUpdated as EventListener);
+
+    return () => {
+      window.removeEventListener('backupCompleted', onBackupCompleted as EventListener);
+      window.removeEventListener('backupScheduleUpdated', onBackupScheduleUpdated as EventListener);
+    };
   }, [navigate, toast]);
 
   if (isLoading) {
@@ -341,6 +368,8 @@ export default function SettingsPage() {
       }
     };
     setSettings(next);
+    // Appliquer immédiatement à la planification locale
+    backupService.setSchedule(next.backup);
     settingsService.updateBackup({ [key]: value } as Partial<UserSettings['backup']>).catch((e) => {
       console.error('Erreur update backup:', e);
       toast({ title: 'Erreur', description: 'Mise à jour de la sauvegarde échouée', variant: 'destructive' });

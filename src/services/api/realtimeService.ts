@@ -1,6 +1,7 @@
 import { apiConfig, getAuthHeaders } from './config';
 import { User } from './authService';
 import { analyticsService } from '@/services/analyticsService';
+import { backupService } from '@/services/backupService';
 
 export interface RealtimeEvent {
   type: 'connection' | 'heartbeat' | 'profile_updated' | 'notification' | 'settings_updated';
@@ -146,8 +147,16 @@ export class RealtimeService {
             );
             window.dispatchEvent(new CustomEvent('privacySettingsUpdated', { detail: privacy }));
           }
+          if (data.backup) {
+            const backup = data.backup;
+            backupService.setSchedule({
+              autoBackup: !!backup.autoBackup,
+              frequence: backup.frequence || 'weekly'
+            });
+            window.dispatchEvent(new CustomEvent('backupSettingsUpdated', { detail: backup }));
+          }
         } catch (e) {
-          console.warn('Erreur dispatch settings_updated:', e);
+          console.warn('Erreur traitement settings_updated:', e);
         }
         break;
       case 'heartbeat':
