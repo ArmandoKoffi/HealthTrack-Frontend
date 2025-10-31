@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import Tutorial from "./components/Tutorial";
 import { TutorialProvider, useTutorialContext } from "./contexts/TutorialContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { DisplayProvider } from "./contexts/DisplayContext";
 import VerifyEmail from "./pages/VerifyEmail";
 
 const queryClient = new QueryClient();
@@ -66,9 +67,11 @@ const AppContent = () => {
 
 const AppWithProvider = () => (
   <ThemeProvider>
-    <TutorialProvider>
-      <AppContent />
-    </TutorialProvider>
+    <DisplayProvider>
+      <TutorialProvider>
+        <AppContent />
+      </TutorialProvider>
+    </DisplayProvider>
   </ThemeProvider>
 );
 

@@ -22,12 +22,42 @@ import {
 } from 'lucide-react';
 import { realtimeService, RealtimeEvent } from '@/services/api/realtimeService';
 import { Progress } from '@/components/ui/progress';
+import { useDisplay } from '@/contexts/DisplayContext';
 
 export default function Notifications() {
+  const { formatTime } = useDisplay();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  function formatDate(dateStr: string) {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'Date invalide';
+
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      if (diffHours < 1) {
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        if (diffMinutes < 1) return 'À l’instant';
+        return `${diffMinutes} min`;
+      }
+      if (diffHours < 24) {
+        return `${diffHours} h`;
+      }
+    }
+
+    if (diffDays === 1) {
+      return 'Hier';
+    }
+
+    const datePart = d.toLocaleDateString();
+    return `${datePart} ${formatTime(d)}`;
+  }
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -235,26 +265,7 @@ export default function Notifications() {
     );
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-    if (diffInHours < 1) {
-      return 'À l\'instant';
-    } else if (diffInHours < 24) {
-      return `Il y a ${Math.floor(diffInHours)}h`;
-    } else if (diffInHours < 48) {
-      return 'Hier';
-    } else {
-      return date.toLocaleDateString('fr-FR', { 
-        day: 'numeric', 
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-  };
 
   const renderNotificationContent = (n: Notification) => {
     const isProgress = n.type === 'progres' && n.progressData && typeof n.progressData.progressPercentage === 'number';

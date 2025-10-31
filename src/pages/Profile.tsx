@@ -23,9 +23,11 @@ import {
   Info
 } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
+import { useDisplay } from '@/contexts/DisplayContext';
 
 export default function Profile() {
   const { toast } = useToast();
+  const { formatWeightKg, formatHeightCm, formatTime, toKg, toCm } = useDisplay();
   
   const [user, setUser] = useState(profileService.getUserData());
   const [isEditing, setIsEditing] = useState(false);
@@ -73,7 +75,21 @@ export default function Profile() {
   if (!user) return null;
 
   const isActiveValue = user?.isActive ?? true;
-  const lastLoginDisplay = formatLastLogin(user?.lastLogin);
+  const lastLoginDisplay = (() => {
+    const last = user?.lastLogin;
+    if (!last) return '—';
+    try {
+      const d = typeof last === 'string' ? new Date(last) : last;
+      if (Number.isNaN(d.getTime())) return '—';
+      const now = new Date();
+      const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+      if (sameDay) return "Aujourd'hui";
+      const datePart = d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `${datePart} à ${formatTime(d)}`;
+    } catch {
+      return '—';
+    }
+  })();
   const roleLabel = user?.role === 'admin' ? 'Administrateur' : 'Utilisateur';
   const emailVerifiedValue = !!user?.emailVerified;
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,9 +140,9 @@ export default function Profile() {
         nom: formData.nom,
         prenom: formData.prenom,
         dateNaissance: formData.dateNaissance,
-        poids: formData.poids ? parseFloat(formData.poids) : undefined,
-        taille: formData.taille ? parseFloat(formData.taille) : undefined,
-        objectifPoids: formData.objectifPoids ? parseFloat(formData.objectifPoids) : undefined
+        poids: formData.poids ? toKg(parseFloat(formData.poids)) : undefined,
+        taille: formData.taille ? toCm(parseFloat(formData.taille)) : undefined,
+        objectifPoids: formData.objectifPoids ? toKg(parseFloat(formData.objectifPoids)) : undefined
       };
 
       const result = await profileService.updateProfile(updates, token);
@@ -477,18 +493,23 @@ export default function Profile() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Actuel</span>
-                      <span className="font-medium">{hasPoids ? `${poidsDisplay} kg` : 'Non renseigné'}</span>
+-                     <span className="font-medium">{hasPoids ? `${poidsDisplay} kg` : 'Non renseigné'}</span>
++                     <span className="font-medium">{hasPoids ? (() => { const f = formatWeightKg(poidsDisplay); return `${f.valueText} ${f.unit}`; })() : 'Non renseigné'}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Objectif</span>
-                      <span className="font-medium">{hasObjectifPoids ? `${objectifPoidsDisplay} kg` : 'Non renseigné'}</span>
+-                     <span className="font-medium">{hasObjectifPoids ? `${objectifPoidsDisplay} kg` : 'Non renseigné'}</span>
++                     <span className="font-medium">{hasObjectifPoids ? (() => { const f = formatWeightKg(objectifPoidsDisplay); return `${f.valueText} ${f.unit}`; })() : 'Non renseigné'}</span>
                     </div>
                     {hasPoids && hasObjectifPoids && (
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Restant</span>
-                        <span className={`font-medium ${restantClass}`}>
-                          {restantValue} kg
-                        </span>
+-                       <span className={`font-medium ${restantClass}`}>
+-                         {restantValue} kg
+-                       </span>
++                       <span className={`font-medium ${restantClass}`}>
++                         {(() => { const f = formatWeightKg(parseFloat(restantValue || '0')); return `${f.valueText} ${f.unit}`; })()}
++                       </span>
                       </div>
                     )}
                     {!hasObjectifPoids && (

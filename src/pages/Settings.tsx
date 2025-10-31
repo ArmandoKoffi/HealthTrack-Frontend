@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useDisplay } from '@/contexts/DisplayContext';
 import { 
   Settings, 
   Bell, 
@@ -306,9 +307,11 @@ export default function SettingsPage() {
       }
     };
     setSettings(next);
-    // Si on modifie le thème, appliquer immédiatement via le contexte global
+    // Appliquer immédiatement via context
     if (key === 'theme') {
       setTheme(value as 'system' | 'light' | 'dark');
+    } else {
+      setDisplay({ [key]: value } as any);
     }
     settingsService.updateDisplay({ [key]: value } as Partial<UserSettings['display']>).catch((e) => {
       console.error('Erreur update display:', e);
@@ -481,33 +484,7 @@ export default function SettingsPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="unites-poids">Unités de poids</Label>
-                  <select 
-                    id="unites-poids"
-                    className="w-full p-2 border border-input rounded-md bg-background"
-                    value={settings.display.unitesPoids}
-                    onChange={(e) => updateDisplaySetting('unitesPoids', e.target.value)}
-                  >
-                    <option value="kg">Kilogrammes (kg)</option>
-                    <option value="lbs">Livres (lbs)</option>
-                  </select>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="unites-taille">Unités de taille</Label>
-                  <select 
-                    id="unites-taille"
-                    className="w-full p-2 border border-input rounded-md bg-background"
-                    value={settings.display.unitesTaille}
-                    onChange={(e) => updateDisplaySetting('unitesTaille', e.target.value)}
-                  >
-                    <option value="cm">Centimètres (cm)</option>
-                    <option value="ft">Pieds et pouces (ft/in)</option>
-                  </select>
-                </div>
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="format-heure">Format d'heure</Label>

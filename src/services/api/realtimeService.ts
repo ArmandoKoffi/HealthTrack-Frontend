@@ -2,7 +2,7 @@ import { apiConfig, getAuthHeaders } from './config';
 import { User } from './authService';
 
 export interface RealtimeEvent {
-  type: 'connection' | 'heartbeat' | 'profile_updated' | 'notification';
+  type: 'connection' | 'heartbeat' | 'profile_updated' | 'notification' | 'settings_updated';
   data?: unknown;
   message?: string;
   timestamp: string;
@@ -128,6 +128,14 @@ export class RealtimeService {
         break;
       case 'notification':
         this.handleNotification(event.data as NotificationData);
+        break;
+      case 'settings_updated':
+        try {
+          const display = (event.data as any)?.display || event.data;
+          window.dispatchEvent(new CustomEvent('displaySettingsUpdated', { detail: display }));
+        } catch (e) {
+          console.warn('Erreur dispatch settings_updated:', e);
+        }
         break;
       case 'heartbeat':
         // Heartbeat pour maintenir la connexion

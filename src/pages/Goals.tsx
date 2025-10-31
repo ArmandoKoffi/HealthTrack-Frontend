@@ -22,6 +22,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { ObjectifUtilisateur } from '@/types/health';
+import { useDisplay } from '@/contexts/DisplayContext';
 
 // Helper pour formater une date en yyyy-MM-dd pour les inputs
 const formatDateForInput = (dateStr: string | Date | undefined): string => {
@@ -49,6 +50,7 @@ export default function Goals() {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { formatWeightKg, getWeightUnitLabel, toKg } = useDisplay();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -120,7 +122,7 @@ export default function Goals() {
       }
       const nouvelObjectif = {
         type: formData.type,
-        valeurCible: parseFloat(formData.valeurCible),
+        valeurCible: formData.type === 'poids' ? toKg(parseFloat(formData.valeurCible)) : parseFloat(formData.valeurCible),
         valeurActuelle: getCurrentValue(formData.type),
         dateDebut: new Date().toISOString().split('T')[0],
         dateFinSouhaitee: formData.dateFinSouhaitee,
@@ -192,7 +194,7 @@ export default function Goals() {
 
       const updates = {
         type: formData.type,
-        valeurCible: parseFloat(formData.valeurCible),
+        valeurCible: formData.type === 'poids' ? toKg(parseFloat(formData.valeurCible)) : parseFloat(formData.valeurCible),
         dateFinSouhaitee: formData.dateFinSouhaitee,
       };
 
@@ -433,7 +435,7 @@ export default function Goals() {
                   <Input
                     type="number"
                     step="0.1"
-                    placeholder={`Ex: 65 ${getTypeUnit(formData.type)}`}
+                    placeholder={`Ex: 65 ${formData.type === 'poids' ? getWeightUnitLabel() : getTypeUnit(formData.type)}`}
                     value={formData.valeurCible}
                     onChange={(e) => setFormData({ ...formData, valeurCible: e.target.value })}
                   />
@@ -490,7 +492,7 @@ export default function Goals() {
                         {getStatusBadge(objectif)}
                       </div>
                       <CardDescription>
-                        Objectif: {objectif.valeurCible} {getTypeUnit(objectif.type)} 
+                        Objectif: {objectif.type === 'poids' ? formatWeightKg(objectif.valeurCible) : `${objectif.valeurCible} ${getTypeUnit(objectif.type)}`} 
                         • Créé le {new Date(objectif.dateDebut).toLocaleDateString('fr-FR')}
                       </CardDescription>
                     </div>
@@ -534,21 +536,21 @@ export default function Goals() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Valeur actuelle</p>
                         <p className="text-xl font-bold text-primary">
-                          {objectif.valeurActuelle} {getTypeUnit(objectif.type)}
+                          {objectif.type === 'poids' ? formatWeightKg(objectif.valeurActuelle) : `${objectif.valeurActuelle} ${getTypeUnit(objectif.type)}`}
                         </p>
                       </div>
                       
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Valeur cible</p>
                         <p className="text-xl font-bold text-foreground">
-                          {objectif.valeurCible} {getTypeUnit(objectif.type)}
+                          {objectif.type === 'poids' ? formatWeightKg(objectif.valeurCible) : `${objectif.valeurCible} ${getTypeUnit(objectif.type)}`}
                         </p>
                       </div>
                       
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Restant</p>
                         <p className="text-xl font-bold text-warning">
-                          {Math.abs(objectif.valeurCible - objectif.valeurActuelle).toFixed(1)} {getTypeUnit(objectif.type)}
+                          {objectif.type === 'poids' ? formatWeightKg(Math.abs(objectif.valeurCible - objectif.valeurActuelle)) : `${Math.abs(objectif.valeurCible - objectif.valeurActuelle).toFixed(1)} ${getTypeUnit(objectif.type)}`}
                         </p>
                       </div>
                       
