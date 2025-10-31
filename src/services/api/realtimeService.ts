@@ -1,5 +1,6 @@
 import { apiConfig, getAuthHeaders } from './config';
 import { User } from './authService';
+import { analyticsService } from '@/services/analyticsService';
 
 export interface RealtimeEvent {
   type: 'connection' | 'heartbeat' | 'profile_updated' | 'notification' | 'settings_updated';
@@ -131,8 +132,20 @@ export class RealtimeService {
         break;
       case 'settings_updated':
         try {
-          const display = (event.data as any)?.display || event.data;
-          window.dispatchEvent(new CustomEvent('displaySettingsUpdated', { detail: display }));
+          const data: any = (event.data as any) || {};
+          if (data.display) {
+            const display = data.display;
+            window.dispatchEvent(new CustomEvent('displaySettingsUpdated', { detail: display }));
+          }
+          if (data.privacy) {
+            const privacy = data.privacy;
+            analyticsService.setConsent(
+              privacy.partagerDonnees,
+              privacy.analytiques,
+              privacy.amelioration
+            );
+            window.dispatchEvent(new CustomEvent('privacySettingsUpdated', { detail: privacy }));
+          }
         } catch (e) {
           console.warn('Erreur dispatch settings_updated:', e);
         }

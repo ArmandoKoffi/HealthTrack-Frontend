@@ -26,6 +26,7 @@ import {
   Save
 } from 'lucide-react';
 import { settingsService, type UserSettings } from '@/services/api';
+import { analyticsService } from '@/services/analyticsService';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -90,6 +91,12 @@ export default function SettingsPage() {
               backup: data.backup,
             };
             setSettings(payload);
+            // Initialiser le consentement analytics/partage
+            analyticsService.setConsent(
+              payload.privacy.partagerDonnees,
+              payload.privacy.analytiques,
+              payload.privacy.amelioration
+            );
           }
         } else {
           navigate('/login');
@@ -292,6 +299,12 @@ export default function SettingsPage() {
       }
     };
     setSettings(next);
+    // Mettre à jour le consentement local immédiatement
+    analyticsService.setConsent(
+      next.privacy.partagerDonnees,
+      next.privacy.analytiques,
+      next.privacy.amelioration
+    );
     settingsService.updatePrivacy({ [key]: value }).catch((e) => {
       console.error('Erreur update privacy:', e);
       toast({ title: 'Erreur', description: 'Mise à jour de la confidentialité échouée', variant: 'destructive' });
